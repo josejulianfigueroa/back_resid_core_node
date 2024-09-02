@@ -1,0 +1,48 @@
+import mongoose, { Schema } from 'mongoose';
+
+
+const reservationSchema = new mongoose.Schema( {
+
+  startDate: {
+    type: String,
+    required: [ true, 'fechaInicio is required' ]
+  },
+  endDate: {
+    type: String,
+    required: [ true, 'fechaSalida is required' ]
+  },
+  customerObservations: {
+    type: String,
+  },
+  reasonRejection: {
+    type: String,
+  },
+  status: {
+    type: [String],
+    default: ['SOLICITUD'],
+    enum: ['SOLICITUD','ACEPATADA','RECHAZADA']
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  lodgement: {
+    type: Schema.Types.ObjectId,
+    ref: 'Lodgement',
+    required: true
+  }
+
+} );
+
+reservationSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function( doc, ret, options ) {
+    delete ret._id;
+  },
+})
+
+
+export const ReservationModel = mongoose.model('Reservation', reservationSchema);
+
