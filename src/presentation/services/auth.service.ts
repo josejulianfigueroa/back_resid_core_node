@@ -3,13 +3,9 @@ import { UserModel } from '../../data/mongo';
 import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from '../../domain';
 
 
-
-
 export class AuthService {
 
-  // DI
   constructor() {}
-
 
   public async registerUser( registerUserDto: RegisterUserDto ) {
 
@@ -29,7 +25,6 @@ export class AuthService {
 
       const { password, ...userEntity } = UserEntity.fromObject(user);
 
-
       return { 
         user: userEntity, 
         token: 'ABC' 
@@ -40,7 +35,6 @@ export class AuthService {
     }
 
   }
-
 
   public async loginUser( loginUserDto: LoginUserDto ) {
 
@@ -61,9 +55,6 @@ export class AuthService {
       token: token,
     }
 
-
-
   }
-
 
 }

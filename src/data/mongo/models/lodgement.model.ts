@@ -11,7 +11,7 @@ const lodgementSchema = new mongoose.Schema( {
     type: String,
     required: [ true, 'descripcion is required' ],
   },
-  ubicacion: {
+  location: {
     type: String,
   },
   activeStatus: {

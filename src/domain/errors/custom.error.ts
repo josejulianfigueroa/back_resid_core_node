@@ -1,6 +1,4 @@
 
-
-
 export class CustomError extends Error {
 
   constructor(
@@ -29,7 +27,6 @@ export class CustomError extends Error {
   static internalServer(message: string) {
     return new CustomError(500, message);
   }
-
 
 }
 

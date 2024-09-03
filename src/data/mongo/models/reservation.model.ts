@@ -4,7 +4,7 @@ import mongoose, { Schema } from 'mongoose';
 const reservationSchema = new mongoose.Schema( {
 
   startDate: {
-    type: String,
+    type: Date,
     required: [ true, 'fechaInicio is required' ]
   },
   endDate: {

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { Authroutes } from './auth/routes';
-
+import { ReservationRoutes } from './reservations/routes';
+import { LodgementRoutes } from './lodgements/routes';
+import { BusyDateRoutes } from './busydates/routes';
 
 export class AppRoutes {
 
@@ -8,8 +10,10 @@ export class AppRoutes {
 
     const router = Router();
     
-    // Definir las rutas
-    router.use('/api/auth', Authroutes.routes );
+   router.use('/api/auth', Authroutes.routes );
+   router.use('/api/reservations', ReservationRoutes.routes );
+   router.use('/api/busydates', BusyDateRoutes.routes )
+   router.use('/api/lodgements', LodgementRoutes.routes )
 
     return router;
   }
