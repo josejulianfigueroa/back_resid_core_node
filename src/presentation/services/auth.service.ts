@@ -1,5 +1,5 @@
 import { JwtAdapter, bcryptAdapter } from '../../config';
-import { UserModel } from '../../data';
+import { UserModel } from '../../data/mongo';
 import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from '../../domain';
 
 

@@ -8,7 +8,7 @@ const reservationSchema = new mongoose.Schema( {
     required: [ true, 'fechaInicio is required' ]
   },
   endDate: {
-    type: String,
+    type: Date,
     required: [ true, 'fechaSalida is required' ]
   },
   customerObservations: {
@@ -18,9 +18,8 @@ const reservationSchema = new mongoose.Schema( {
     type: String,
   },
   status: {
-    type: [String],
-    default: ['SOLICITUD'],
-    enum: ['SOLICITUD','ACEPATADA','RECHAZADA']
+    type: String,
+    default: 'SOLICITUD',
   },
   user: {
     type: Schema.Types.ObjectId,

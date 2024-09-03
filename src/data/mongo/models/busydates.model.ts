@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 
-const busyDatesSchema = new mongoose.Schema( {
+const busydatesSchema = new mongoose.Schema( {
 
   date: {
     type: Date,
@@ -15,7 +15,7 @@ const busyDatesSchema = new mongoose.Schema( {
 
 } );
 
-busyDatesSchema.set('toJSON', {
+busydatesSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
   transform: function( doc, ret, options ) {
@@ -23,5 +23,5 @@ busyDatesSchema.set('toJSON', {
   },
 })
 
-export const BusyDatesModel = mongoose.model('BusyDates', busyDatesSchema);
+export const BusydatesModel = mongoose.model('Busydates', busydatesSchema);
 
