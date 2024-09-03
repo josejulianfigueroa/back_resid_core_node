@@ -6,9 +6,57 @@ export class ReservationService {
 
   constructor() { }
 
-  async createReservation( reservationDto: ReservationDto, user: UserEntity ) {
+  
+  async deleteReservation(id: string ) {
+    try {
+      const reservation = await ReservationModel.findByIdAndDelete(id);
+  
+    if(reservation){
 
-    const reservationExists = await ReservationModel.findOne( { name: reservationDto.startDate } );
+      return {
+        id: reservation.id,
+        startDate: reservation.startDate,
+        endDate: reservation.endDate,
+        user: reservation.user,
+        lodgement: reservation.lodgement
+      };
+
+  } else {
+    throw CustomError.badRequest( 'delete failed' );
+  }
+  } catch ( error ) {
+    throw CustomError.internalServer( `${ error }` );
+  }
+
+}
+
+  async updateReservation( createReservationtDto: ReservationDto, id: string ) {
+    try {
+    const reservation = await ReservationModel.findByIdAndUpdate( id, createReservationtDto );
+  
+    if(reservation){
+
+      return {
+        id: reservation.id,
+        startDate: reservation.startDate,
+        endDate: reservation.endDate,
+        user: reservation.user,
+        lodgement: reservation.lodgement
+      };
+
+  } else {
+    throw CustomError.badRequest( 'update failed' );
+  }
+  } catch ( error ) {
+    throw CustomError.internalServer( `${ error }` );
+  }
+
+}
+  async createReservation( reservationDto: ReservationDto, user: UserEntity, idLodgement: string ) {
+
+    const reservationExists = await ReservationModel.findOne( { startDate: reservationDto.startDate ,
+                                                                endDate: reservationDto.endDate 
+                                                                } );
     if ( reservationExists ) throw CustomError.badRequest( 'Reservation already exists' );
 
     try {
@@ -16,15 +64,17 @@ export class ReservationService {
       const reservation = new ReservationModel( {
         ...reservationDto,
         user: user.id,
+        lodgement: idLodgement
       } );
 
       await reservation.save();
 
-
       return {
         id: reservation.id,
-        name: reservation.startDate,
-        available: reservation.endDate,
+        startDate: reservation.startDate,
+        endDate: reservation.endDate,
+        user: reservation.user,
+        lodgement: reservation.lodgement,
       };
 
     } catch ( error ) {
@@ -32,8 +82,6 @@ export class ReservationService {
     }
 
   }
-
-
 
   async getReservations( paginationDto: PaginationDto ) {
 
@@ -57,10 +105,12 @@ export class ReservationService {
         next: `/api/reservations?page=${ ( page + 1 ) }&limit=${ limit }`,
         prev: (page - 1 > 0) ? `/api/reservations?page=${ ( page - 1 ) }&limit=${ limit }`: null,
 
-        categories: reservations.map( reservation => ( {
+        reservations: reservations.map( reservation => ( {
           id: reservation.id,
           startDate: reservation.startDate,
-          endDate: reservation.endDate
+          endDate: reservation.endDate,
+          user: reservation.user,
+          lodgement: reservation.lodgement,
         } ) )
       };
 

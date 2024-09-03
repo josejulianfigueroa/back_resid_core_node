@@ -5,11 +5,11 @@ const reservationSchema = new mongoose.Schema( {
 
   startDate: {
     type: Date,
-    required: [ true, 'fechaInicio is required' ]
+    required: [ true, 'startDate is required' ]
   },
   endDate: {
     type: Date,
-    required: [ true, 'fechaSalida is required' ]
+    required: [ true, 'endDate is required' ]
   },
   customerObservations: {
     type: String,

@@ -6,6 +6,52 @@ export class LodgementService {
 
   constructor() { }
 
+  async deleteLodgement(id: string ) {
+    try {
+      const lodgement = await LodgementModel.findByIdAndDelete(id);
+  
+    if(lodgement){
+
+    return {
+      id: lodgement.id,
+      name: lodgement.name,
+      description: lodgement.description,
+      location: lodgement.location,
+      activeStatus: lodgement.activeStatus,
+    };
+
+  } else {
+    throw CustomError.badRequest( 'delete failed' );
+  }
+  } catch ( error ) {
+    throw CustomError.internalServer( `${ error }` );
+  }
+
+}
+
+  async updateLodgement( createLodgementDto: LodgementDto, id: string ) {
+    try {
+    const lodgement = await LodgementModel.findByIdAndUpdate( id, createLodgementDto );
+  
+    if(lodgement){
+
+    return {
+      id: lodgement.id,
+      name: lodgement.name,
+      description: lodgement.description,
+      location: lodgement.location,
+      activeStatus: lodgement.activeStatus,
+    };
+
+  } else {
+    throw CustomError.badRequest( 'update failed' );
+  }
+  } catch ( error ) {
+    throw CustomError.internalServer( `${ error }` );
+  }
+
+}
+
   async createLodgement( createLodgementDto: LodgementDto ) {
 
     const lodgementExists = await LodgementModel.findOne( { name: createLodgementDto.name } );
@@ -22,7 +68,7 @@ export class LodgementService {
       return {
         id: lodgement.id,
         name: lodgement.name,
-        available: lodgement.description,
+        description: lodgement.description,
       };
 
     } catch ( error ) {
@@ -30,7 +76,6 @@ export class LodgementService {
     }
 
   }
-
 
   async getLodgements( paginationDto: PaginationDto ) {
 
@@ -52,10 +97,11 @@ export class LodgementService {
         next: `/api/lodgements?page=${ ( page + 1 ) }&limit=${ limit }`,
         prev: (page - 1 > 0) ? `/api/lodgements?page=${ ( page - 1 ) }&limit=${ limit }`: null,
 
-        categories: lodgements.map( lodge => ( {
+        lodgements: lodgements.map( lodge => ( {
           id: lodge.id,
           name: lodge.name,
-          available: lodge.description,
+          description: lodge.description,
+          activeStatus: lodge.activeStatus,
         } ) )
       };
 

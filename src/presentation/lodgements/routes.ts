@@ -16,6 +16,8 @@ export class LodgementRoutes {
 
     router.get( '/', controller.getLodgements );
     router.post( '/',[ AuthMiddleware.validateJWT ], controller.createLodgement );
+    router.post( '/update/:id',[ AuthMiddleware.validateJWT ], controller.updateLodgement );
+    router.post( '/delete/:id',[ AuthMiddleware.validateJWT ], controller.deleteLodgement );
 
     return router;
   }

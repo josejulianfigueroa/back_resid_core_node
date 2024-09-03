@@ -19,6 +19,29 @@ export class LodgementController {
     return res.status( 500 ).json( { error: 'Internal server error' } );
   };
 
+  updateLodgement = ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    const [ error, updateLodgement ] = LodgementDto.create({ 
+      ...req.body,
+    });
+    if ( error ) return res.status( 400 ).json( { error } );
+
+
+    this.lodgementService.updateLodgement( updateLodgement!, id )
+      .then( lodgement => res.status( 201 ).json( lodgement ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
+  deleteLodgement = ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    this.lodgementService.deleteLodgement( id )
+      .then( lodgement => res.status( 201 ).json( lodgement ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
 
   createLodgement = ( req: Request, res: Response ) => {
 
@@ -30,7 +53,7 @@ export class LodgementController {
 
 
     this.lodgementService.createLodgement( createProductDto! )
-      .then( category => res.status( 201 ).json( category ) )
+      .then( lodgement => res.status( 201 ).json( lodgement ) )
       .catch( error => this.handleError( error, res ) );
 
   };
@@ -43,7 +66,7 @@ export class LodgementController {
 
     
     this.lodgementService.getLodgements( paginationDto! )
-      .then( products => res.json( products ))
+      .then( lodgements => res.json( lodgements ))
       .catch( error => this.handleError( error, res ) );
 
   };

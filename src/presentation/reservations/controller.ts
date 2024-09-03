@@ -19,15 +19,39 @@ export class ReservationController {
     return res.status( 500 ).json( { error: 'Internal server error' } );
   };
 
+  updateReservation = ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    const [ error, updateReservation ] = ReservationDto.create({ 
+      ...req.body,
+    });
+    if ( error ) return res.status( 400 ).json( { error } );
+
+    this.reservationService.updateReservation( updateReservation!, id )
+      .then( reservation => res.status( 201 ).json( reservation ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
+  deleteReservation= ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    this.reservationService.deleteReservation( id )
+      .then( reservation => res.status( 201 ).json( reservation ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
 
   createReservation = ( req: Request, res: Response ) => {
 
+    if(!req.body.user || !req.body.lodgement){
+      return res.status( 400 ).json( { error: 'User and Lodgement is required' } );
+    }
     const [ error, reservationDto ] = ReservationDto.create( req.body );
     if ( error ) return res.status( 400 ).json( { error } );
 
-
-    this.reservationService.createReservation( reservationDto!, req.body.user )
-      .then( category => res.status( 201 ).json( category ) )
+    this.reservationService.createReservation( reservationDto!, req.body.user, req.body.lodgement )
+      .then( reservation => res.status( 201 ).json( reservation ) )
       .catch( error => this.handleError( error, res ) );
 
 
@@ -40,7 +64,7 @@ export class ReservationController {
     if ( error ) return res.status(400).json({ error });
     
     this.reservationService.getReservations( paginationDto! )
-      .then( categories => res.json( categories ))
+      .then( reservations => res.json( reservations ))
       .catch( error => this.handleError( error, res ) );
 
   };
