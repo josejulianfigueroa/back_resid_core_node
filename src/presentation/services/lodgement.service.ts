@@ -18,6 +18,7 @@ export class LodgementService {
       description: lodgement.description,
       location: lodgement.location,
       activeStatus: lodgement.activeStatus,
+      cost: lodgement.cost,
     };
 
   } else {
@@ -41,6 +42,7 @@ export class LodgementService {
       description: lodgement.description,
       location: lodgement.location,
       activeStatus: lodgement.activeStatus,
+      cost: lodgement.cost,
     };
 
   } else {
@@ -69,6 +71,7 @@ export class LodgementService {
         id: lodgement.id,
         name: lodgement.name,
         description: lodgement.description,
+        cost: lodgement.cost,
       };
 
     } catch ( error ) {
@@ -102,6 +105,7 @@ export class LodgementService {
           name: lodge.name,
           description: lodge.description,
           activeStatus: lodge.activeStatus,
+          cost: lodge.cost,
         } ) )
       };
 
@@ -109,6 +113,30 @@ export class LodgementService {
       throw CustomError.internalServer( 'Internal Server Error' );
     }
   }
+
+  async getLodgementById( idLodgement: string ) {
+
+    try {
+      const lodgement = await LodgementModel.findById( idLodgement );
+   
+      if(lodgement){
+        
+      return {
+          id: lodgement.id,
+          name: lodgement.name,
+          description: lodgement.description,
+          location: lodgement.location,
+          activeStatus: lodgement.activeStatus, 
+          cost: lodgement.cost,
+      };
+    } else {
+      throw CustomError.badRequest( 'no record for this idLodgement' );
+    }
+    } catch ( error ) {
+      throw CustomError.internalServer( 'Internal Server Error' );
+    }
+  }
+  
 }
 
 

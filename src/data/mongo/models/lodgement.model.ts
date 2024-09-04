@@ -14,6 +14,10 @@ const lodgementSchema = new mongoose.Schema( {
   location: {
     type: String,
   },
+  cost: {
+    type: Number,
+    required: [ true, 'cost is required' ],
+  },
   activeStatus: {
     type: Boolean,
     default: false,

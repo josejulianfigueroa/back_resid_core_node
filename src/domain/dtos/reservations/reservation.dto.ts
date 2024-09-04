@@ -8,12 +8,13 @@ export class ReservationDto {
     public readonly customerObservations: string,
     public readonly reasonRejection: string,
     public readonly status: string,
+    public readonly costReservation: number,
   ) {}
 
 
   static create( object: { [key: string]: any } ):[string?, ReservationDto?] {
 
-    const { startDate, endDate, customerObservations, reasonRejection, status } = object;
+    const { startDate, endDate, customerObservations, reasonRejection, status, costReservation } = object;
 
     if ( !startDate ) return ['Missing startDate'];
     if ( !endDate ) return ['Missing endDate'];
@@ -24,7 +25,7 @@ export class ReservationDto {
     if(moment(endDate).isBefore(moment())) return ['endDate date must be in future'];
     if(moment(endDate).isBefore(moment(startDate))) return ['Start date must be before end date'];
    
-    return [undefined, new ReservationDto(startDate, endDate, customerObservations, reasonRejection, status )];
+    return [undefined, new ReservationDto(startDate, endDate, customerObservations, reasonRejection, status, costReservation )];
 
   }
 

@@ -20,6 +20,28 @@ export class ReservationController {
   };
 
   
+  payReservation= ( req: Request, res: Response ) => {
+    const { id: idReservation, monto } = req.params;
+    let montoNumber: number = 0;
+    if(monto){
+      montoNumber = parseInt(monto);
+    }
+ 
+    this.reservationService.payReservation( idReservation, montoNumber, req.body.user)
+      .then( reservation => res.status( 201 ).json( reservation ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
+  changeStatusReservation= ( req: Request, res: Response ) => {
+    const { id: idReservation, status } = req.params;
+
+    this.reservationService.changeStatusReservation( idReservation,  status, req.body.user)
+      .then( reservation => res.status( 201 ).json( reservation ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
   deleteReservation= ( req: Request, res: Response ) => {
     const { id } = req.params;
 

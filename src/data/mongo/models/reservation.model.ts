@@ -19,7 +19,10 @@ const reservationSchema = new mongoose.Schema( {
   },
   status: {
     type: String,
-    default: 'SOLICITUD',
+    default: 'SOLICITUD'
+  },
+  costReservation: {
+    type: Number,
   },
   user: {
     type: Schema.Types.ObjectId,

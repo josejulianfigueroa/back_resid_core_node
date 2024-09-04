@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { AuthMiddleware } from '../middlewares/auth.middleware';
 import { LodgementController } from './controller';
 import { LodgementService } from '../services/lodgement.service';
-
+import { envs, Validators } from './../../config';
+import { check } from 'express-validator';
 
 export class LodgementRoutes {
 
@@ -16,8 +17,15 @@ export class LodgementRoutes {
 
     router.get( '/', controller.getLodgements );
     router.post( '/',[ AuthMiddleware.validateJWT ], controller.createLodgement );
-    router.post( '/update/:id',[ AuthMiddleware.validateJWT ], controller.updateLodgement );
-    router.post( '/delete/:id',[ AuthMiddleware.validateJWT ], controller.deleteLodgement );
+    router.post( '/update/:id',
+       [AuthMiddleware.validateJWT,
+       check('id').custom( Validators.isMongoID ),
+       Validators.validarCampos ], controller.updateLodgement );
+    router.post( '/delete/:id',
+      [ AuthMiddleware.validateJWT,
+        check('id').custom( Validators.isMongoID ),
+        Validators.validarCampos
+       ], controller.deleteLodgement );
 
     return router;
   }
