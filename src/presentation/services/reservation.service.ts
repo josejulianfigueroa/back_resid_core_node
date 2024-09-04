@@ -75,16 +75,16 @@ export class ReservationService {
                        }
                        if(status.endsWith('CANCELADA') && costReservation){
                         this.deleteReservation(idReservation) 
-                        this.sentEmailToClientStatusCancelada(moment(reservation.startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString(),
-                                                     moment(reservation.endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString(),
+                        this.sentEmailToClientStatusCancelada(reservation.startDate.toString(),
+                                                     reservation.endDate.toString(),
                                                      user,
                                                      lodge.name,
                                                      costReservation,
                                                      lodge.cost);
                       }
                       if(status.endsWith('PAGADA') && monto && suma && costReservation){
-                        this.sentEmailToClientStatusPagada(moment(reservation.startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString(),
-                                                   moment(reservation.endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString(),
+                        this.sentEmailToClientStatusPagada(reservation.startDate.toString(),
+                                                   reservation.endDate.toString(),
                                                    user,
                                                    lodge.name,
                                                    monto,
@@ -93,8 +93,8 @@ export class ReservationService {
                                                    lodge.cost);
                       }
                       if(status.endsWith('ABONO') && monto && suma && costReservation){
-                        this.sentEmailToClientStatusAbono(moment(reservation.startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString(),
-                                                   moment(reservation.endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString(),
+                        this.sentEmailToClientStatusAbono(reservation.startDate.toString(),
+                                                   reservation.endDate.toString(),
                                                    user,
                                                    lodge.name,
                                                    monto,
@@ -102,8 +102,7 @@ export class ReservationService {
                                                    costReservation,
                                                    lodge.cost);
                       }
-                      })
-                    .catch( error => {});
+                      });
 
     return {
       id: reservation.id,
@@ -182,7 +181,8 @@ let i: number = 0;
       ...reservationDto,
       user: user.id,
       lodgement: idLodgement,
-      costReservation: lodge.cost * daysNight
+      costReservation: lodge.cost * daysNight,
+      dateReservation: moment().format('YYYY-MM-DD').toString(),
     } );
 
     reservation.save();
@@ -223,15 +223,35 @@ let i: number = 0;
 
   }
 
-  async getReservations( paginationDto: PaginationDto ) {
+  async getReservations( paginationDto: PaginationDto, status: string, idUser: string, idLodgement: string, startDate: string, endDate: string ) {
 
     const { page, limit } = paginationDto;
 
+    let obj: BusquedaReservacion = {};
+   
+  if(status) {
+    obj.status = status;
+  }
+  if(idLodgement) {
+    obj.lodgement = idLodgement;
+  }
+  if(idUser) {
+    obj.user = idUser;
+  }
+  if(startDate) {
+    const dateMongo:DateMongoMayorQ = {$gte : new Date(moment(startDate,'YYYY-MM-DD').subtract(1, 'days').format('YYYY-MM-DD').toString()) };
+    obj.startDate = dateMongo;
+  }
+  if(endDate) {
+    const dateMongo:DateMongoMenorQ = {$lt : new Date(moment(endDate,'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD').toString()) };
+    obj.endDate = dateMongo;
+  }
+  console.log(obj);
     try {
 
       const [ total, reservations ] = await Promise.all( [
         ReservationModel.countDocuments(),
-        ReservationModel.find()
+        ReservationModel.find(obj)
           .skip( ( page - 1 ) * limit )
           .limit( limit )
       ] );
@@ -496,4 +516,19 @@ const isSentAdmin = await this.emailService.sendEmail(optionsAdmin);
 if ( !isSentAdmin ) throw CustomError.internalServer('Error sending email Admin');
 }
 
+}
+
+export interface BusquedaReservacion {
+    lodgement?: string;
+    user?: string;
+    startDate?: DateMongoMayorQ;
+    endDate?: DateMongoMenorQ;
+    status?:string;
+}
+
+export interface DateMongoMayorQ {
+  $gte: Date;
+}
+export interface DateMongoMenorQ {
+  $lt: Date;
 }

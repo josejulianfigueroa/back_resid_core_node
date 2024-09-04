@@ -1,7 +1,8 @@
 import { Response, Request } from 'express';
 import { ReservationDto, CustomError, PaginationDto } from '../../domain';
 import { ReservationService } from '../services/reservation.service';
-
+import mongoose from 'mongoose';
+import moment from 'moment';
 
 export class ReservationController {
 
@@ -68,15 +69,49 @@ export class ReservationController {
 
   getReservations = async ( req: Request, res: Response ) => {
 
-    const { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, status = '', idUser = '', idLodgement = '', startDate = '', endDate = '' } = req.query;
+
     const [ error, paginationDto ] = PaginationDto.create( +page, +limit );
+
     if ( error ) return res.status(400).json({ error });
+
+    if ( !paginationDto ) return res.status(400).json({ error });
+
+    if ( status != '' ){
+      const statusArray: string[] = ['CONFIRMADA','CANCELADA','PAGADA','ABONO'];
+
+      const existeStatus = statusArray.find( (valor) => status === valor);
+      if ( !existeStatus ) {
+        return res.status( 400 ).json( { error: `El status ${ status } no está registrado` } );
+      }
+    } 
+    if ( idUser != ''  ){
+      const isOK = mongoose.isValidObjectId(idUser);
+      if ( !isOK ) {
+        return res.status( 400 ).json( { error: `El id ${ idUser } no es válido` } );
+      }
+    } 
+    if ( idLodgement != ''  ){
+      const isOK = mongoose.isValidObjectId(idLodgement);
+      if ( !isOK ) {
+        return res.status( 400 ).json( { error: `El id ${ idLodgement } no es válido` } );
+      }
+    } 
+
+     if ( startDate  != ''  && (!moment(startDate.toString()).isValid() 
+                                  || startDate.toString().length !== 10
+                                  )) {
+      return res.status( 400 ).json( { error: `startDate inválida` } );
+     }
+     if ( endDate != ''  && (!moment(endDate.toString()).isValid() 
+                                  || endDate.toString().length !== 10
+      )) {
+      return res.status( 400 ).json( { error: `endtDate inválida` } );
+     }
     
-    this.reservationService.getReservations( paginationDto! )
+    this.reservationService.getReservations( paginationDto, status.toString(), idUser.toString(), idLodgement.toString(), startDate.toString(), endDate.toString() )
       .then( reservations => res.json( reservations ))
       .catch( error => this.handleError( error, res ) );
 
   };
-
-
 }

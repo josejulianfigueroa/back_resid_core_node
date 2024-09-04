@@ -24,6 +24,9 @@ const reservationSchema = new mongoose.Schema( {
   costReservation: {
     type: Number,
   },
+  dateReservation: {
+    type: Date,
+  },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',

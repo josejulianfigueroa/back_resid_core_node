@@ -23,7 +23,7 @@ export class Validators {
 }
 static esStatusValido = (status:string) => {
 
-  const statusArray: string[] = ['CONFIRMADA','CANCELADA'];
+  const statusArray: string[] = ['CONFIRMADA','CANCELADA','PAGADA','ABONO'];
 
    const existeStatus = statusArray.find( (valor) => status === valor);
    if ( !existeStatus ) {
