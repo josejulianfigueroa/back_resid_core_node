@@ -11,6 +11,11 @@ const busydatesSchema = new mongoose.Schema( {
     type: Schema.Types.ObjectId,
     ref: 'Lodgement',
     required: true
+  },
+  reservation: {
+    type: Schema.Types.ObjectId,
+    ref: 'Reservation',
+    required: true
   }
 
 } );

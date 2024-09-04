@@ -13,7 +13,6 @@ export class BusyDateRoutes {
     const controller = new BusyDatesController( busyDatesService );
 
     router.get( '/', controller.getBusyDates );
-    router.post( '/',[ AuthMiddleware.validateJWT ], controller.createBusyDate );
 
     return router;
   }

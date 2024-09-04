@@ -19,20 +19,7 @@ export class ReservationController {
     return res.status( 500 ).json( { error: 'Internal server error' } );
   };
 
-  updateReservation = ( req: Request, res: Response ) => {
-    const { id } = req.params;
-
-    const [ error, updateReservation ] = ReservationDto.create({ 
-      ...req.body,
-    });
-    if ( error ) return res.status( 400 ).json( { error } );
-
-    this.reservationService.updateReservation( updateReservation!, id )
-      .then( reservation => res.status( 201 ).json( reservation ) )
-      .catch( error => this.handleError( error, res ) );
-
-  };
-
+  
   deleteReservation= ( req: Request, res: Response ) => {
     const { id } = req.params;
 
@@ -44,8 +31,8 @@ export class ReservationController {
 
   createReservation = ( req: Request, res: Response ) => {
 
-    if(!req.body.user || !req.body.lodgement){
-      return res.status( 400 ).json( { error: 'User and Lodgement is required' } );
+    if(!req.body.lodgement){
+      return res.status( 400 ).json( { error: 'Lodgement is required' } );
     }
     const [ error, reservationDto ] = ReservationDto.create( req.body );
     if ( error ) return res.status( 400 ).json( { error } );

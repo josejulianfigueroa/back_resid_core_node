@@ -1,13 +1,11 @@
 import { Response, Request } from 'express';
-import { BusyDatesDto, CustomError, PaginationDto } from '../../domain';
+import { CustomError, PaginationDto } from '../../domain';
 import { BusyDatesService } from '../services/busydates.service';
-
 
 
 
 export class BusyDatesController {
 
-  // DI
   constructor(
     private readonly busyDatesService: BusyDatesService,
   ) { }
@@ -23,21 +21,6 @@ export class BusyDatesController {
   };
 
 
-  createBusyDate = ( req: Request, res: Response ) => {
-
-    const [ error, create ] = BusyDatesDto.create({ 
-      ...req.body,
-      user: req.body.user.id,
-    });
-    if ( error ) return res.status( 400 ).json( { error } );
-
-if(create) {
-  this.busyDatesService.createBusyDate( create )
-  .then( category => res.status( 201 ).json( category ) )
-  .catch( error => this.handleError( error, res ) );
-}
-
-  };
 
   getBusyDates = async ( req: Request, res: Response ) => {
 

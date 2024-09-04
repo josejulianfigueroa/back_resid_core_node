@@ -14,7 +14,6 @@ export class ReservationRoutes {
 
     router.get( '/', controller.getReservations );
     router.post( '/',[ AuthMiddleware.validateJWT ],controller.createReservation );
-    router.post( '/update/:id',[ AuthMiddleware.validateJWT ], controller.updateReservation );
     router.post( '/delete/:id',[ AuthMiddleware.validateJWT ], controller.deleteReservation );
 
     return router;
