@@ -1,5 +1,7 @@
 import mongoose, { mongo } from 'mongoose';
 import { validationResult } from 'express-validator';
+import { regularExps } from './regular-exp';
+import { UserModel } from '../data';
 
 export class Validators {
 
@@ -42,6 +44,14 @@ static esNumero = (monto:string) => {
    return true;
 }
 
+static emailExiste = async( email = '' ) => {
+
+  // Verificar si el correo existe
+  const userExist = await UserModel.findOne( { email: email} );
+  if ( !userExist ) {
+      throw new Error(`El email: ${ email }, no existe en la base de datos`);
+  }
+}
 static validarCampos = ( req:any, res:any, next:any ) => {
 
   const errors = validationResult(req);

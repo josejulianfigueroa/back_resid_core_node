@@ -1,7 +1,6 @@
 import { BusydatesModel, ReservationModel  } from '../../data';
 import { PagosModel, LodgementModel } from '../../data/mongo';
 import { ReservationDto, CustomError, PaginationDto, UserEntity } from '../../domain';
-import { ReservationRoutes } from '../reservations/routes';
 import { LodgementService, EmailService } from './';
 import moment from 'moment';
 

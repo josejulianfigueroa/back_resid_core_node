@@ -10,9 +10,7 @@ export class BusyDatesService {
 
     const { page, limit } = paginationDto;
 
-
     try {
-
       const [ total, busyDates ] = await Promise.all( [
         BusydatesModel.countDocuments(),
         BusydatesModel.find()

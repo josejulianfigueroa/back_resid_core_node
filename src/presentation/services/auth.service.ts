@@ -1,3 +1,4 @@
+import { UsersService } from '.';
 import { JwtAdapter, bcryptAdapter, envs } from '../../config';
 import { UserModel } from '../../data';
 import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from '../../domain';
@@ -8,6 +9,7 @@ export class AuthService {
 
   constructor(
     private readonly emailService: EmailService,
+    private readonly usersService: UsersService,
   ) {}
 
   public async registerUser( registerUserDto: RegisterUserDto ) {
@@ -62,7 +64,6 @@ export class AuthService {
 
   }
 
-
   private sendEmailValidationLink = async( email: string ) => {
 
     const token = await JwtAdapter.generateToken({ email });
@@ -89,21 +90,30 @@ export class AuthService {
 
   public sendEmailResetClave = async( email: string ) => {
 
+    let user = await this.usersService.getUserByEmail(email, true);
+
+    user.password = '123456';
+
     const html = `
-      <h1>Reset Password:</h1>
+      <h1>${ user.name}, aquí tienes tu nueva clave temporal</h1>
       <hr>
-      <p><strong>Su nueva clave temporal es:</strong></p>
-      <p><strong>1234</strong></p>
+      <p><strong>Password: 123456</strong></p>
       <br>
       <hr>
-      <p><strong>Recurde, ésta clave es temporal. 
-      Depués de hacer login en la aplicación, debe cambiar su clave secreta por una más segura</strong></p>
+      <p><strong>Recurda, ésta clave es temporal. 
+      Depués de hacer login en la aplicación, debes cambiar tu clave secreta por una más segura.</strong></p>
     `;
 
     const options = {
       to: email,
       subject: 'Reset Password',
       htmlBody: html,
+    }
+    
+    const [error, registerDto] = RegisterUserDto.modify(user);
+    
+    if(registerDto){
+      await this.usersService.updateUser(registerDto);
     }
 
     const isSent = await this.emailService.sendEmail(options);
