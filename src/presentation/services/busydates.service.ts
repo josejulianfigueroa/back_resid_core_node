@@ -1,10 +1,11 @@
 import { BusydatesModel  } from '../../data';
 import { CustomError, PaginationDto } from '../../domain';
+import { FileSystemService } from './fileSystem.service';
 
 
 export class BusyDatesService {
 
-  constructor() { }
+  constructor(private readonly fileSystemService: FileSystemService) { }
 
   async getBusyDates( paginationDto: PaginationDto ) {
 

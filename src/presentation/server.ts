@@ -1,5 +1,9 @@
 import express, { Router } from 'express';
 import fileUpload from 'express-fileupload';
+import { CronService } from './services/cron-service';
+import { EmailService } from './services';
+import { envs } from '../config';
+import { FileSystemService } from './services/fileSystem.service';
 const cors = require('cors');
 
 interface Options {
@@ -8,6 +12,13 @@ interface Options {
   public_path?: string;
 }
 
+const emailService = new EmailService(
+  envs.MAILER_SERVICE,
+  envs.MAILER_EMAIL,
+  envs.MAILER_SECRET_KEY,
+  envs.SEND_EMAIL,
+  new FileSystemService()
+)
 
 export class Server {
 
@@ -25,7 +36,6 @@ export class Server {
   }
 
 
-  
   async start() {
     
     //* Middlewares
@@ -52,7 +62,14 @@ export class Server {
     this.serverListener = this.app.listen(this.port, () => {
       console.log(`Server running on port ${ this.port }`);
     });
-
+    
+    CronService.createJob(
+      '3 16 * * *',
+      () => {
+        emailService.sendEmailWithFileSystemLogs( envs.MAILER_SOPORTE )
+                    .then(() => new FileSystemService().deleteContentFromFile());
+      }
+    );
   }
 
   public close() {

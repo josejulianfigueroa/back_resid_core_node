@@ -4,6 +4,7 @@ import { AuthMiddleware } from '../middlewares/auth.middleware';
 import { ReservationService, LodgementService, EmailService } from '../services/';
 import { envs, Validators } from './../../config';
 import { check } from 'express-validator';
+import { FileSystemService } from '../services/fileSystem.service';
 
 
 export class ReservationRoutes {
@@ -16,8 +17,9 @@ export class ReservationRoutes {
       envs.MAILER_EMAIL,
       envs.MAILER_SECRET_KEY,
       envs.SEND_EMAIL,
+      new FileSystemService()
     )
-    const reservationService = new ReservationService(new LodgementService(),emailService);
+    const reservationService = new ReservationService(new LodgementService(new FileSystemService()),emailService, new FileSystemService());
     const controller = new ReservationController(reservationService);
 
     router.get( '/', controller.getReservations );

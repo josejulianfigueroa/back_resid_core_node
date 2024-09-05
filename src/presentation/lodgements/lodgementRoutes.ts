@@ -4,6 +4,7 @@ import { LodgementController } from './lodgementController';
 import { LodgementService } from '../services/lodgement.service';
 import { envs, Validators } from '../../config';
 import { check } from 'express-validator';
+import { FileSystemService } from '../services/fileSystem.service';
 
 export class LodgementRoutes {
 
@@ -11,7 +12,7 @@ export class LodgementRoutes {
   static get routes(): Router {
 
     const router = Router();
-    const lodgementService = new LodgementService();
+    const lodgementService = new LodgementService(new FileSystemService());
     const controller = new LodgementController( lodgementService );
 
 

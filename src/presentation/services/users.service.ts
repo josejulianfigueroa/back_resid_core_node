@@ -1,11 +1,12 @@
 import { bcryptAdapter } from '../../config';
 import { UserModel  } from '../../data';
-import { CustomError, PaginationDto, RegisterUserDto } from '../../domain';
+import { CustomError, LogEntity, LogSeverityLevel, PaginationDto, RegisterUserDto } from '../../domain';
+import { FileSystemService } from './fileSystem.service';
 
 
 export class UsersService {
 
-  constructor() { }
+  constructor(private readonly fileSystemService: FileSystemService) { }
 
   public async updateUser( userDto: RegisterUserDto ) {
 
@@ -18,6 +19,13 @@ export class UsersService {
       const user = await UserModel.findByIdAndUpdate( userDto.id, userDto );
 
       if(user){
+        this.fileSystemService.saveLog(
+          new LogEntity({
+          message: `Se ha actualizado con éxito el usuario: ${user.name} con data: ${JSON.stringify(user)}`, 
+          level: LogSeverityLevel.info,
+          origin: 'users.service.ts'
+          }));
+
       return { 
         name: user.name,
         email: user.email,
@@ -28,6 +36,12 @@ export class UsersService {
       };
     }
     } catch (error) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al actualizar usuario con data: ${ JSON.stringify(userDto)}`, 
+          level: LogSeverityLevel.high,
+          origin: 'users.service.ts'
+        }));
       throw CustomError.internalServer(`${ error }`);
     }
 
@@ -45,7 +59,6 @@ export class UsersService {
           .skip( ( page - 1 ) * limit )
           .limit( limit )
       ] );
-
 
       return {
         page: page,
@@ -65,6 +78,12 @@ export class UsersService {
       };
 
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al obtener los usuarios`, 
+          level: LogSeverityLevel.high,
+          origin: 'users.service.ts'
+        }));
       throw CustomError.internalServer( 'Internal Server Error' );
     }
 
@@ -102,6 +121,12 @@ export class UsersService {
       throw CustomError.badRequest( 'no record for this email user' );
     }
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al obtener el usuario por email`, 
+          level: LogSeverityLevel.high,
+          origin: 'users.service.ts'
+        }));
       throw CustomError.internalServer( 'Internal Server Error' );
     }
   }

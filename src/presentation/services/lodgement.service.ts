@@ -1,16 +1,24 @@
 import { LodgementModel } from '../../data';
-import { LodgementDto, CustomError, PaginationDto } from '../../domain';
+import { LodgementDto, CustomError, PaginationDto, LogEntity, LogSeverityLevel } from '../../domain';
+import { FileSystemService } from './fileSystem.service';
 
 
 export class LodgementService {
 
-  constructor() { }
+  constructor(private readonly fileSystemService: FileSystemService) { }
 
   async deleteLodgement(id: string ) {
     try {
       const lodgement = await LodgementModel.findByIdAndDelete(id);
   
     if(lodgement){
+
+      this.fileSystemService.saveLog(
+        new LogEntity({
+        message: `Se ha eliminado con éxito el alojamiento con id: ${lodgement.name} con data: ${JSON.stringify(lodgement)}`, 
+        level: LogSeverityLevel.info,
+        origin: 'lodgement.service.ts'
+        }));
 
     return {
       id: lodgement.id,
@@ -25,6 +33,12 @@ export class LodgementService {
     throw CustomError.badRequest( 'delete failed' );
   }
   } catch ( error ) {
+    this.fileSystemService.saveLog(
+      new LogEntity({
+        message: `Ha ocurrido un error inesperado: ${error}, al querer eliminar un alojamiento con id: ${ id }`, 
+        level: LogSeverityLevel.high,
+        origin: 'lodgement.service.ts'
+      }));
     throw CustomError.internalServer( `${ error }` );
   }
 
@@ -35,6 +49,13 @@ export class LodgementService {
     const lodgement = await LodgementModel.findByIdAndUpdate( id, createLodgementDto );
   
     if(lodgement){
+
+      this.fileSystemService.saveLog(
+        new LogEntity({
+        message: `Se ha actualizado con éxito el alojamiento con id: ${lodgement.name} con data: ${JSON.stringify(lodgement)}`, 
+        level: LogSeverityLevel.info,
+        origin: 'lodgement.service.ts'
+        }));
 
     return {
       id: lodgement.id,
@@ -49,6 +70,12 @@ export class LodgementService {
     throw CustomError.badRequest( 'update failed' );
   }
   } catch ( error ) {
+    this.fileSystemService.saveLog(
+      new LogEntity({
+        message: `Ha ocurrido un error inesperado: ${error}, al querer actualizar un alojamiento con id: ${ id } y data: ${ JSON.stringify(createLodgementDto)}`, 
+        level: LogSeverityLevel.high,
+        origin: 'lodgement.service.ts'
+      }));
     throw CustomError.internalServer( `${ error }` );
   }
 
@@ -67,6 +94,13 @@ export class LodgementService {
 
       await lodgement.save();
 
+      this.fileSystemService.saveLog(
+        new LogEntity({
+        message: `Se ha registrado con éxito el alojamiento con id: ${lodgement.name} con data: ${JSON.stringify(lodgement)}`, 
+        level: LogSeverityLevel.info,
+        origin: 'lodgement.service.ts'
+        }));
+
       return {
         id: lodgement.id,
         name: lodgement.name,
@@ -75,6 +109,12 @@ export class LodgementService {
       };
 
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al querer crear un alojamiento con data: ${ JSON.stringify(createLodgementDto)}`, 
+          level: LogSeverityLevel.high,
+          origin: 'lodgement.service.ts'
+        }));
       throw CustomError.internalServer( `${ error }` );
     }
 
@@ -110,6 +150,12 @@ export class LodgementService {
       };
 
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al querer obtener los alojamientos`, 
+          level: LogSeverityLevel.high,
+          origin: 'lodgement.service.ts'
+        }));
       throw CustomError.internalServer( 'Internal Server Error' );
     }
   }
@@ -133,6 +179,12 @@ export class LodgementService {
       throw CustomError.badRequest( 'no record for this idLodgement' );
     }
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al querer obtener el alojamineto con id: ${ idLodgement }`, 
+          level: LogSeverityLevel.high,
+          origin: 'lodgement.service.ts'
+        }));
       throw CustomError.internalServer( 'Internal Server Error' );
     }
   }

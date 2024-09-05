@@ -3,6 +3,7 @@ import { AuthController } from './authController';
 import { AuthService, EmailService, UsersService } from '../services';
 import { envs, Validators } from '../../config';
 import { check } from 'express-validator';
+import { FileSystemService } from '../services/fileSystem.service';
 
 
 export class Authroutes {
@@ -15,10 +16,11 @@ export class Authroutes {
       envs.MAILER_EMAIL,
       envs.MAILER_SECRET_KEY,
       envs.SEND_EMAIL,
+      new FileSystemService()
     );
-    const usersService = new UsersService();
+    const usersService = new UsersService(new FileSystemService());
 
-    const authService = new AuthService(emailService, usersService);
+    const authService = new AuthService(emailService, usersService, new FileSystemService());
 
     const controller = new AuthController(authService);
     

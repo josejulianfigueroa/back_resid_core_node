@@ -1,14 +1,17 @@
 import { BusydatesModel, ReservationModel  } from '../../data';
 import { PagosModel, LodgementModel } from '../../data/mongo';
-import { ReservationDto, CustomError, PaginationDto, UserEntity } from '../../domain';
+import { ReservationDto, CustomError, PaginationDto, UserEntity, LogEntity, LogSeverityLevel } from '../../domain';
 import { LodgementService, EmailService } from './';
 import moment from 'moment';
+import { FileSystemService } from './fileSystem.service';
+import { envs } from '../../config';
 
 
 export class ReservationService {
 
   constructor(  private readonly lodgementService: LodgementService,
-                private readonly emailService: EmailService
+                private readonly emailService: EmailService,
+                private readonly fileSystemService: FileSystemService
   ) { }
 
   async payReservation(idReservation: string, monto: number, user: UserEntity  ) {
@@ -26,6 +29,12 @@ export class ReservationService {
     const sumaTotal: number = suma + monto;
 
     if( sumaTotal > reservation.costReservation) {
+       await this.fileSystemService.saveLog(
+        new LogEntity({
+        message: `${user.name}, intento realializar un pago mayor al total de su reservación con id: ${idReservation}`, 
+        level: LogSeverityLevel.medium,
+        origin: 'reservation.service.ts'
+        }));
       throw CustomError.badRequest( 'The total payments are greater than the reservation amount' );
     }else {
       const payModel = new PagosModel({ 
@@ -42,6 +51,14 @@ export class ReservationService {
     }else {
       this.changeStatusReservation(idReservation, 'ABONO', user, monto, sumaTotal);
     }
+    
+    // Se guarda log de Pago con exito
+      await this.fileSystemService.saveLog(
+            new LogEntity({
+            message: `${user.name}, ha realizado un pago por ${monto.toLocaleString(["es-VE"])} Bs. en la reservación con id: ${idReservation}`, 
+            level: LogSeverityLevel.info,
+            origin: 'reservation.service.ts'
+            }));
 
     return {
       fechaPago: moment().format('DD-MM-YYYY').toString(),
@@ -60,6 +77,13 @@ export class ReservationService {
 
     reservation.status = status;
     reservation.save();
+
+    await this.fileSystemService.saveLog(
+      new LogEntity({
+      message: `Ha cambiado el status a: ${status}, de la reservación con id: ${idReservation}`, 
+      level: LogSeverityLevel.info,
+      origin: 'reservation.service.ts'
+      }));
 
     this.lodgementService.getLodgementById(reservation.lodgement.toString())
                     .then( lodge => { 
@@ -101,6 +125,13 @@ export class ReservationService {
                                                    costReservation,
                                                    lodge.cost);
                       }
+                      }).catch(error => {
+                         this.fileSystemService.saveLog(
+                          new LogEntity({
+                          message: `Ha ocurrido un error inesperado: ${error}, al obtener el alojamiento en el cambio de status de la reservación con id: ${idReservation}`, 
+                          level: LogSeverityLevel.high,
+                          origin: 'reservation.service.ts'
+                          }));
                       });
 
     return {
@@ -141,6 +172,12 @@ export class ReservationService {
     throw CustomError.badRequest( 'delete failed' );
   }
   } catch ( error ) {
+    this.fileSystemService.saveLog(
+      new LogEntity({
+      message: `Ha ocurrido un error inesperado: ${error}, al eliminar la reservación con id: ${idReservation}`, 
+      level: LogSeverityLevel.high,
+      origin: 'reservation.service.ts'
+      }));
     throw CustomError.internalServer( `${ error }` );
   }
 
@@ -206,6 +243,13 @@ let i: number = 0;
     // Enviar email de confirmación al Administrador
     this.sentEmailToAdmin(reservationDto, user, lodge.name );
     
+    this.fileSystemService.saveLog(
+      new LogEntity({
+      message: `${user.name}, ha registrado con éxito la reservación con id: ${reservation.id} con data: ${JSON.stringify(reservationDto)}`, 
+      level: LogSeverityLevel.info,
+      origin: 'reservation.service.ts'
+      }));
+
     return {
       id: reservation.id,
       startDate: reservation.startDate,
@@ -217,6 +261,12 @@ let i: number = 0;
                      } );
 
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al registrar una reservación con el usuario: ${ user }, con datos de reserva: ${ JSON.stringify(reservationDto)}`, 
+          level: LogSeverityLevel.high,
+          origin: 'reservation.service.ts'
+        }));
       throw CustomError.internalServer( `${ error }` );
     }
 
@@ -274,6 +324,12 @@ let i: number = 0;
       };
 
     } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al obtener datos de las reservaciones con los filtros: ${ JSON.stringify(obj) }`, 
+          level: LogSeverityLevel.high,
+          origin: 'reservation.service.ts'
+        }));
       throw CustomError.internalServer( 'Internal Server Error' );
     }
 
@@ -311,8 +367,8 @@ async sentEmailToClient(reservationDto: ReservationDto, user: UserEntity, nameLo
       <p>Atentamente,</p>
       <p>Veruska Figueroa<br>Gerente de Operaciones<br>
       Residencias El Cristo del Buen Viaje<br>+58 412 3540572
-      <br>figueroa.veruska@gmail.com<br>
-    <a href="http://residenciaselcristo.com">www.residenciaselcristo.com</a>
+      <br>${envs.MAILER_ADMIN_SITE}<br>
+    <a href="${envs.SITE_NAME_URL}">www.residenciaselcristo.com</a>
       <br></p><hr></div>
   `;
 
@@ -347,8 +403,8 @@ async sentEmailToClientStatusConfirmada(startDate:string, endDate:string,  user:
     <p>Atentamente,</p>
     <p>Veruska Figueroa<br>Gerente de Operaciones<br>
     Residencias El Cristo del Buen Viaje<br>+58 412 3540572
-    <br>figueroa.veruska@gmail.com<br>
-  <a href="http://residenciaselcristo.com">www.residenciaselcristo.com</a>
+    <br>${envs.MAILER_ADMIN_SITE}<br>
+  <a href="${envs.SITE_NAME_URL}">www.residenciaselcristo.com</a>
     <br></p><hr></div>
 `;
 
@@ -381,8 +437,8 @@ async sentEmailToClientStatusCancelada(startDate:string, endDate:string,  user: 
     <p>Atentamente,</p>
     <p>Veruska Figueroa<br>Gerente de Operaciones<br>
     Residencias El Cristo del Buen Viaje<br>+58 412 3540572
-    <br>figueroa.veruska@gmail.com<br>
-  <a href="http://residenciaselcristo.com">www.residenciaselcristo.com</a>
+    <br>${envs.MAILER_ADMIN_SITE}<br>
+  <a href="${envs.SITE_NAME_URL}">www.residenciaselcristo.com</a>
     <br></p><hr></div>
 `;
 
@@ -427,8 +483,8 @@ async sentEmailToClientStatusPagada(startDate:string,
     <br>
     <p>Veruska Figueroa<br>Gerente de Operaciones<br>
     Residencias El Cristo del Buen Viaje<br>+58 412 3540572
-    <br>figueroa.veruska@gmail.com<br>
-  <a href="http://residenciaselcristo.com">www.residenciaselcristo.com</a>
+    <br>${envs.MAILER_ADMIN_SITE}<br>
+  <a href="${envs.SITE_NAME_URL}">www.residenciaselcristo.com</a>
     <br></p><hr></div>
 `;
 
@@ -474,8 +530,8 @@ async sentEmailToClientStatusAbono(startDate:string,
     </ul><br>
     <p>Veruska Figueroa<br>Gerente de Operaciones<br>
     Residencias El Cristo del Buen Viaje<br>+58 412 3540572
-    <br>figueroa.veruska@gmail.com<br>
-  <a href="http://residenciaselcristo.com">www.residenciaselcristo.com</a>
+    <br>${envs.MAILER_ADMIN_SITE}<br>
+  <a href="${envs.SITE_NAME_URL}">www.residenciaselcristo.com</a>
     <br></p><hr></div>
 `;
 
@@ -500,13 +556,13 @@ async sentEmailToAdmin(reservationDto: ReservationDto, user: UserEntity, nameLod
     </ul>
     <p>Veruska Figueroa<br>Gerente de Operaciones<br>
     Residencias El Cristo del Buen Viaje<br>+58 412 3540572
-    <br>figueroa.veruska@gmail.com<br>
-  <a href="http://residenciaselcristo.com">www.residenciaselcristo.com</a>
+    <br>${envs.MAILER_ADMIN_SITE}<br>
+  <a href="${envs.SITE_NAME_URL}">www.residenciaselcristo.com</a>
     <br></p><hr></div>
 `;
 
 const optionsAdmin = {
-  to: 'josejulianfigueroa2@gmail.com',
+  to: `${envs.MAILER_ADMIN_SITE}`,
   subject: 'Nueva Reserva en Residencias el Cristo del Buen Viaje',
   htmlBody: htmlAdmin,
 }

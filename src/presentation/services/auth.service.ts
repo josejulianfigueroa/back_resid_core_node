@@ -1,8 +1,9 @@
 import { UsersService } from '.';
 import { JwtAdapter, bcryptAdapter, envs } from '../../config';
 import { UserModel } from '../../data';
-import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from '../../domain';
+import { CustomError, LogEntity, LoginUserDto, LogSeverityLevel, RegisterUserDto, UserEntity } from '../../domain';
 import { EmailService } from './email.service';
+import { FileSystemService } from './fileSystem.service';
 
 
 export class AuthService {
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private readonly emailService: EmailService,
     private readonly usersService: UsersService,
+    private readonly fileSystemService: FileSystemService
   ) {}
 
   public async registerUser( registerUserDto: RegisterUserDto ) {
@@ -33,12 +35,25 @@ export class AuthService {
       const token = await JwtAdapter.generateToken({ id: user.id });
       if ( !token ) throw CustomError.internalServer('Error while creating JWT');
 
+      this.fileSystemService.saveLog(
+        new LogEntity({
+        message: `Se ha registrado con éxito el usuario: ${user.name} con data: ${JSON.stringify(user)}`, 
+        level: LogSeverityLevel.info,
+        origin: 'auth.service.ts'
+        }));
+
       return { 
         user: userEntity, 
         token: token,
       };
 
     } catch (error) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al registar usuario con data: ${ JSON.stringify(registerUserDto)}`, 
+          level: LogSeverityLevel.high,
+          origin: 'auth.service.ts'
+        }));
       throw CustomError.internalServer(`${ error }`);
     }
 
@@ -66,6 +81,7 @@ export class AuthService {
 
   private sendEmailValidationLink = async( email: string ) => {
 
+      try{
     const token = await JwtAdapter.generateToken({ email });
     if ( !token ) throw CustomError.internalServer('Error getting token');
 
@@ -85,6 +101,14 @@ export class AuthService {
     const isSent = await this.emailService.sendEmail(options);
     if ( !isSent ) throw CustomError.internalServer('Error sending email');
 
+  }catch (error) {
+    this.fileSystemService.saveLog(
+      new LogEntity({
+        message: `Ha ocurrido un error inesperado: ${error}, al enviar email para la validación del correo con email: ${ JSON.stringify(email)}`, 
+        level: LogSeverityLevel.high,
+        origin: 'auth.service.ts'
+      }));
+  }
     return true;
   }
 
@@ -115,10 +139,21 @@ export class AuthService {
     if(registerDto){
       await this.usersService.updateUser(registerDto);
     }
-
-    const isSent = await this.emailService.sendEmail(options);
-    if ( !isSent ) throw CustomError.internalServer('Error sending email');
-
+    
+      try {
+    
+        const isSent = await this.emailService.sendEmail(options);
+    
+        if ( !isSent ) throw CustomError.internalServer('Error sending email');
+    
+      }catch (error) {
+        this.fileSystemService.saveLog(
+          new LogEntity({
+            message: `Ha ocurrido un error inesperado: ${error}, al enviar email para el reset de la clave con data: ${ JSON.stringify(registerDto)}`, 
+            level: LogSeverityLevel.high,
+            origin: 'auth.service.ts'
+          }));
+      }
     return true;
   }
 
