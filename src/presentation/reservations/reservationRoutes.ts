@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ReservationController } from './controller';
+import { ReservationController } from './reservationController';
 import { AuthMiddleware } from '../middlewares/auth.middleware';
 import { ReservationService, LodgementService, EmailService } from '../services/';
 import { envs, Validators } from './../../config';

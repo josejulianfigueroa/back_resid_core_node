@@ -5,3 +5,4 @@ export * from './lodgement.service';
 export * from './reservation.service';
 export * from './busydates.service';
 export * from './email.service';
+export * from './users.service';

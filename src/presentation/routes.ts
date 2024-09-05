@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { Authroutes } from './auth/routes';
 import { ReservationRoutes } from './reservations/routes';
-import { LodgementRoutes } from './lodgements/routes';
-import { BusyDateRoutes } from './busydates/routes';
+import { LodgementRoutes } from './lodgements/lodgementRoutes';
+import { BusyDateRoutes } from './busydates/busydatesRoutes';
 
 
 export class AppRoutes {

@@ -18,6 +18,16 @@ export class AuthController {
     return res.status(500).json({ error: 'Internal server error' })
   } 
 
+  resetClave = (req: Request, res: Response) => {
+    const { email } = req.params;
+    
+    this.authService.sendEmailResetClave( email )
+      .then( () => res.json('Password reset Ok') )
+      .catch( error => this.handleError(error, res) );
+
+      
+  }
+
   registerUser = (req: Request, res: Response) => {
     const [error, registerDto] = RegisterUserDto.create(req.body);
     if ( error ) return res.status(400).json({error})

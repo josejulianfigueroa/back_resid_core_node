@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { AuthMiddleware } from '../middlewares/auth.middleware';
-import { LodgementController } from './controller';
+import { LodgementController } from './lodgementController';
 import { LodgementService } from '../services/lodgement.service';
-import { envs, Validators } from './../../config';
+import { envs, Validators } from '../../config';
 import { check } from 'express-validator';
 
 export class LodgementRoutes {

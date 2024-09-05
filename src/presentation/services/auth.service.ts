@@ -87,6 +87,30 @@ export class AuthService {
     return true;
   }
 
+  public sendEmailResetClave = async( email: string ) => {
+
+    const html = `
+      <h1>Reset Password:</h1>
+      <hr>
+      <p><strong>Su nueva clave temporal es:</strong></p>
+      <p><strong>1234</strong></p>
+      <br>
+      <hr>
+      <p><strong>Recurde, ésta clave es temporal. 
+      Depués de hacer login en la aplicación, debe cambiar su clave secreta por una más segura</strong></p>
+    `;
+
+    const options = {
+      to: email,
+      subject: 'Reset Password',
+      htmlBody: html,
+    }
+
+    const isSent = await this.emailService.sendEmail(options);
+    if ( !isSent ) throw CustomError.internalServer('Error sending email');
+
+    return true;
+  }
 
   public validateEmail = async(token:string) => {
 

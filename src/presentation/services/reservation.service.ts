@@ -246,7 +246,7 @@ let i: number = 0;
     const dateMongo:DateMongoMenorQ = {$lt : new Date(moment(endDate,'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD').toString()) };
     obj.endDate = dateMongo;
   }
-  console.log(obj);
+
     try {
 
       const [ total, reservations ] = await Promise.all( [

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthMiddleware } from '../middlewares/auth.middleware';
-import { BusyDatesController } from './controller';
+import { BusyDatesController } from './busydatesController';
 import { BusyDatesService } from '../services/busydates.service';
 
 

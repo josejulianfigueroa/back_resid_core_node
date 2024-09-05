@@ -28,7 +28,7 @@ export class BusyDatesService {
         next: `/api/busydates?page=${ ( page + 1 ) }&limit=${ limit }`,
         prev: (page - 1 > 0) ? `/api/busydates?page=${ ( page - 1 ) }&limit=${ limit }`: null,
 
-        categories: busyDates.map( busyDates => ( {
+        busydates: busyDates.map( busyDates => ( {
           date: busyDates.date,
         } ) )
       };
