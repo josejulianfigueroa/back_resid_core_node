@@ -100,8 +100,8 @@ export class AuthService {
       <p><strong>Password: 123456</strong></p>
       <br>
       <hr>
-      <p><strong>Recurda, ésta clave es temporal. 
-      Depués de hacer login en la aplicación, debes cambiar tu clave secreta por una más segura.</strong></p>
+      <p><strong>Recuerda, ésta clave es temporal. 
+      Después de hacer login en la aplicación, debes cambiar tu clave secreta por una más segura.</strong></p>
     `;
 
     const options = {

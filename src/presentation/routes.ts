@@ -3,6 +3,8 @@ import { Authroutes } from './auth/authRoutes';
 import { ReservationRoutes } from './reservations/reservationRoutes';
 import { LodgementRoutes } from './lodgements/lodgementRoutes';
 import { BusyDateRoutes } from './busydates/busydatesRoutes';
+import { FileUploadRoutes } from './file-upload/fileUploadRoutes';
+import { ImageRoutes } from './images/imagesRoutes';
 
 
 export class AppRoutes {
@@ -15,7 +17,9 @@ export class AppRoutes {
    router.use('/api/reservations', ReservationRoutes.routes );
    router.use('/api/busydates', BusyDateRoutes.routes )
    router.use('/api/lodgements', LodgementRoutes.routes )
-
+   router.use('/api/upload', FileUploadRoutes.routes );
+   router.use('/api/images', ImageRoutes.routes );
+   
     return router;
   }
 
