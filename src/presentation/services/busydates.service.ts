@@ -60,6 +60,8 @@ export class BusyDatesService {
 
         busydates: busyDates.map( busyDates => ( {
           date: busyDates.date,
+          lodgement: busyDates.lodgement,
+          reservation: busyDates.reservation,
         } ) )
       };
 

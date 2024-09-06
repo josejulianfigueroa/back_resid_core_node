@@ -67,27 +67,36 @@ export class Server {
     
 
 
+    // Job para el backup de la base de datos cada 10:10 horas
+    if(envs.ENVIO_LOGS){
+      CronService.createJob(
+        '10 10 * * *',
+        () => {
+          backupAndRestoreMongo.backupMongoDB()
+        }
+      );
+    }
 
-    backupAndRestoreMongo.backupMongoDB()
-
-
-    // Job para el envío de Logs cada 10:05 horas
+    // Job para el envío de Logs a las 10:05 horas
+    if(envs.ENVIO_LOGS){
     CronService.createJob(
       '5 10 * * *',
       () => {
+     
         emailService.sendEmailWithFileSystemLogs( envs.MAILER_SOPORTE )
                     .then(() => new FileSystemService().deleteContentFromFile());
       }
     );
-
+  }
     // Job para el mantenimiento diario de la tabla busydates a las 10:01 horas
+    if(envs.MANTENIMIENTO_BUSYDATES){
     CronService.createJob(
       '1 10 * * *',
       () => {
         busyDatesService.deleteBusydateByMaintenance();
       }
     );
-
+  }
   }
 
   public close() {

@@ -16,6 +16,9 @@ export const envs = {
   PROD: get('PROD').required().asBool(),
   SEND_EMAIL: get('SEND_EMAIL').default('false').asBool(),
   SITE_NAME_URL: get('SITE_NAME_URL').required().asString(),
+  ENVIO_LOGS: get('ENVIO_LOGS').default('true').asBool(),
+  BACKUP: get('BACKUP').default('true').asBool(),
+  MANTENIMIENTO_BUSYDATES: get('MANTENIMIENTO_BUSYDATES').default('true').asBool(),
 } 
 
 

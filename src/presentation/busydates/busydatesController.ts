@@ -30,7 +30,7 @@ export class BusyDatesController {
 
     
     this.busyDatesService.getBusyDates( paginationDto! )
-      .then( products => res.json( products ))
+      .then( busydates => res.json( busydates ))
       .catch( error => this.handleError( error, res ) );
 
   };
