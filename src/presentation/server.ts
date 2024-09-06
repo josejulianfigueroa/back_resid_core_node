@@ -3,7 +3,8 @@ import fileUpload from 'express-fileupload';
 import { CronService } from './services/cron-service';
 import { EmailService } from './services';
 import { envs } from '../config';
-import { FileSystemService } from './services/fileSystem.service';
+import { FileSystemService, BusyDatesService } from './services';
+import { BackupAndRestoreMongo } from './services/backupAndRestoreMongo.service';
 const cors = require('cors');
 
 interface Options {
@@ -19,7 +20,8 @@ const emailService = new EmailService(
   envs.SEND_EMAIL,
   new FileSystemService()
 )
-
+const busyDatesService = new BusyDatesService(new FileSystemService());
+const backupAndRestoreMongo = new BackupAndRestoreMongo();
 export class Server {
 
   public readonly app = express();
@@ -63,13 +65,29 @@ export class Server {
       console.log(`Server running on port ${ this.port }`);
     });
     
+
+
+
+    backupAndRestoreMongo.backupMongoDB()
+
+
+    // Job para el envío de Logs cada 10:05 horas
     CronService.createJob(
-      '3 16 * * *',
+      '5 10 * * *',
       () => {
         emailService.sendEmailWithFileSystemLogs( envs.MAILER_SOPORTE )
                     .then(() => new FileSystemService().deleteContentFromFile());
       }
     );
+
+    // Job para el mantenimiento diario de la tabla busydates a las 10:01 horas
+    CronService.createJob(
+      '1 10 * * *',
+      () => {
+        busyDatesService.deleteBusydateByMaintenance();
+      }
+    );
+
   }
 
   public close() {
