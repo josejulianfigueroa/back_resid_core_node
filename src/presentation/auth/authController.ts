@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
-import { CustomError, LoginUserDto, RegisterUserDto } from '../../domain';
+import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from '../../domain';
 import { AuthService } from '../services/auth.service';
+import { JwtAdapter } from '../../config';
+import { UserModel } from '../../data';
 
 
 export class AuthController {
@@ -51,6 +53,19 @@ export class AuthController {
       
   }
 
+  checkToken = (req: Request, res: Response) => {
+      return res.json({
+        user: {
+          "id": req.body.user.id,
+          "name": req.body.user.name,
+          "email": req.body.user.email,
+          "emailValidated": req.body.user.emailValidated,
+          "role": req.body.user.role
+      } ,
+        token: req.header('Authorization')!.split(' ').at(1) || '',
+      });
+  }
+
   validateEmail = (req: Request, res: Response) => {
     const { token } = req.params;
     
@@ -59,5 +74,5 @@ export class AuthController {
       .catch( error => this.handleError(error, res) );
 
   }
-
+  
 }

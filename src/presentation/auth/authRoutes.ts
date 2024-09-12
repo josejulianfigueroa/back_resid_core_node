@@ -4,6 +4,7 @@ import { AuthService, EmailService, UsersService } from '../services';
 import { envs, Validators } from '../../config';
 import { check } from 'express-validator';
 import { FileSystemService } from '../services/fileSystem.service';
+import { AuthMiddleware } from '../middlewares/auth.middleware';
 
 
 export class Authroutes {
@@ -26,6 +27,7 @@ export class Authroutes {
     
     router.post('/login', controller.loginUser );
     router.post('/register', controller.registerUser );
+    router.get( '/check-token',[ AuthMiddleware.validateJWT ], controller.checkToken );
     router.post('/reset-clave/:email',[
       check('email', 'El email no es válido').isEmail(),
       check('email').custom( Validators.emailExiste ),
