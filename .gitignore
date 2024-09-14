@@ -9,9 +9,9 @@
 /postgres
 docker-compose.yml
 node_modules/
-dist/
-build/
-coverage/
-backup/
-logs/** */
-uploads/
+/dist
+/build
+/coverage
+/backup
+/logs
+/uploads
