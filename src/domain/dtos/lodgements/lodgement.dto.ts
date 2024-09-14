@@ -15,7 +15,7 @@ export class LodgementDto {
 
     if ( !Number(cost) ) return ['Cost Invalid'];
     if ( !name ) return ['Missing name'];
-    if ( !description ) return ['Missing nadescriptionme'];
+    if ( !description ) return ['Missing Description'];
 
     return [undefined, new LodgementDto(name, description, location, activeStatus, cost)];
 

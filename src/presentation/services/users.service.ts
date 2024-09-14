@@ -27,12 +27,12 @@ export class UsersService {
           }));
 
       return { 
-        name: user.name,
-        email: user.email,
-        emailValidated: user.emailValidated,
-        roles: user.role,
-        telefono: user.telefono,
-        img: user.img,
+        name: userDto.name,
+        email: userDto.email,
+        emailValidated: userDto.emailValidated,
+        roles: userDto.role,
+        telefono: userDto.telefono,
+        img: userDto.img,
       };
     }
     } catch (error) {

@@ -58,12 +58,12 @@ export class LodgementService {
         }));
 
     return {
-      id: lodgement.id,
-      name: lodgement.name,
-      description: lodgement.description,
-      location: lodgement.location,
-      activeStatus: lodgement.activeStatus,
-      cost: lodgement.cost,
+      id: id,
+      name: createLodgementDto.name,
+      description: createLodgementDto.description,
+      location: createLodgementDto.location,
+      activeStatus: createLodgementDto.activeStatus,
+      cost: createLodgementDto.cost,
     };
 
   } else {
@@ -105,6 +105,8 @@ export class LodgementService {
         id: lodgement.id,
         name: lodgement.name,
         description: lodgement.description,
+        location: lodgement.location,
+        activeStatus: lodgement.activeStatus,
         cost: lodgement.cost,
       };
 
@@ -146,6 +148,7 @@ export class LodgementService {
           description: lodge.description,
           activeStatus: lodge.activeStatus,
           cost: lodge.cost,
+          img: lodge.img
         } ) )
       };
 

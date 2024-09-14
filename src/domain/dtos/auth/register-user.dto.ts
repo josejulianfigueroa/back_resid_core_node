@@ -11,6 +11,7 @@ export class RegisterUserDto {
     public role?: string,
     public telefono?: string,
     public id?: string,
+    public emailValidated?: string
   ) {}
 
   static create( object: { [key:string]:any } ): [string?, RegisterUserDto?] {
@@ -27,14 +28,14 @@ export class RegisterUserDto {
   }
 
   static modify( object: { [key:string]:any } ): [string?, RegisterUserDto?] {
-    const { name, email, password, img, role, telefono, id } = object;
+    const { name, email, password, img, role, telefono, id, emailValidated } = object;
 
     if ( !name ) return ['Missing name'];
     if ( password ){
       if ( password.length < 6 ) return ['Password too short'];
     }
 
-    return [undefined, new RegisterUserDto(name, email, password, img, role, telefono, id)];
+    return [undefined, new RegisterUserDto(name, email, password, img, role, telefono, id, emailValidated)];
 
   }
 

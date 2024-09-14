@@ -28,7 +28,7 @@ export class Authroutes {
     router.post('/login', controller.loginUser );
     router.post('/register', controller.registerUser );
     router.get( '/check-token',[ AuthMiddleware.validateJWT ], controller.checkToken );
-    router.post('/reset-clave/:email',[
+    router.get('/reset-clave/:email',[
       check('email', 'El email no es válido').isEmail(),
       check('email').custom( Validators.emailExiste ),
       Validators.validarCampos
