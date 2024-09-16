@@ -16,8 +16,11 @@ const busydatesSchema = new mongoose.Schema( {
     type: Schema.Types.ObjectId,
     ref: 'Reservation',
     required: true
+  },
+  dateCreation: {
+    type: Date, 
+    default: Date.now
   }
-
 } );
 
 busydatesSchema.set('toJSON', {

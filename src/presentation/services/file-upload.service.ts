@@ -44,7 +44,7 @@ export class FileUploadService {
     } catch (error) {
       this.fileSystemService.saveLog(
         new LogEntity({
-          message: `Ha ocurrido un error inesperado: ${error}, al querer subir el archivo: ${ file.name }`, 
+          message: `Ha ocurrido un error inesperado: ${error}, al intentar subir el archivo: ${ file.name }`, 
           level: LogSeverityLevel.high,
           origin: 'file-upload.service.ts'
         }));

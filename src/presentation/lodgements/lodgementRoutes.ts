@@ -18,6 +18,9 @@ export class LodgementRoutes {
 
     router.get( '/', controller.getLodgements );
     router.post( '/',[ AuthMiddleware.validateJWT ], controller.createLodgement );
+    router.post( '/load/images/:id',[ AuthMiddleware.validateJWT ], controller.loadImagesLodgement );
+    router.get( '/get/images/:id',[ AuthMiddleware.validateJWT ], controller.getImagesLodgementById );
+    router.get( '/delete/images/:id',[ AuthMiddleware.validateJWT ], controller.deleteImgById );
     router.post( '/update/:id',
        [AuthMiddleware.validateJWT,
        check('id').custom( Validators.isMongoID ),
@@ -30,7 +33,7 @@ export class LodgementRoutes {
 
     return router;
   }
-
+  
 
 }
 

@@ -1,7 +1,7 @@
 import { Response, Request } from 'express';
 import { LodgementDto, CustomError, PaginationDto } from '../../domain';
 import { LodgementService } from '../services/lodgement.service';
-
+import { LoadImages } from '../../domain/interfaces/loadImages.interface';
 
 export class LodgementController {
 
@@ -43,6 +43,16 @@ export class LodgementController {
 
   };
 
+  
+  deleteImgById = ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    this.lodgementService.deleteImgById( id )
+      .then( lodgement => res.status( 201 ).json( lodgement ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
   createLodgement = ( req: Request, res: Response ) => {
 
     const [ error, createProductDto ] = LodgementDto.create({ 
@@ -58,6 +68,22 @@ export class LodgementController {
 
   };
 
+  loadImagesLodgement = ( req: Request, res: Response ) => {
+    const { id } = req.params;
+    const loadImages: LoadImages[] = req.body.images;
+
+   if(loadImages.length > 0 ){
+
+    this.lodgementService.loadImageLodgement( loadImages, id )
+      .then( lodgement => res.status( 201 ).json( lodgement ) )
+      .catch( error => this.handleError( error, res ) );
+
+   } else {
+    return res.status( 400 ).json( 'No hay imagenes para cargar' );
+   }
+
+  };
+  
   getLodgements = async ( req: Request, res: Response ) => {
 
     const { page = 1, limit = 10 } = req.query;
@@ -71,5 +97,13 @@ export class LodgementController {
 
   };
 
+  getImagesLodgementById = async ( req: Request, res: Response ) => {
 
+    const { id } = req.params;
+
+    this.lodgementService.getImagesLodgementById( id )
+      .then( lodgements => res.json( lodgements ))
+      .catch( error => this.handleError( error, res ) );
+
+  };
 }
