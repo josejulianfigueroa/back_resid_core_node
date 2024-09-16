@@ -1,4 +1,4 @@
-import { BusydatesModel, ReservationModel  } from '../../data';
+import { BusydatesModel, ReservationModel, UserModel  } from '../../data';
 import { PagosModel, LodgementModel } from '../../data/mongo';
 import { ReservationDto, CustomError, PaginationDto, UserEntity, LogEntity, LogSeverityLevel } from '../../domain';
 import { LodgementService, EmailService } from './';
@@ -211,7 +211,7 @@ let i: number = 0;
     }
     // Obtener el nombre del alojamiento para enviar email
     return this.lodgementService.getLodgementById(idLodgement)
-                    .then( lodge => { 
+                    .then( async lodge => { 
     // Crear la reserva en la tabla de reservaciones
     const reservation = new ReservationModel( {
       ...reservationDto,
@@ -222,7 +222,6 @@ let i: number = 0;
     } );
 
     reservation.save();
-
 // Insertar las fechas generadas en la tabla de ocupaciones busydates
     for(i=0; i < daysNight; i++)
       {
@@ -250,15 +249,22 @@ let i: number = 0;
       origin: 'reservation.service.ts'
       }));
 
-    return {
-      id: reservation.id,
-      startDate: reservation.startDate,
-      endDate: reservation.endDate,
-      dateReservation: reservation.dateReservation,
-      status: reservation.status,
-      user: reservation.user,
-      lodgement: reservation.lodgement,
-};    
+      const reservationNew = await ReservationModel.findById( reservation.id )
+      .populate('user')
+      .populate('lodgement');
+       
+    
+        return {
+            id: reservation.id,
+            startDate: reservation.startDate,
+            endDate: reservation.endDate,
+            dateReservation: reservation.dateReservation,
+            status: reservation.status,
+            user: await UserModel.findById( reservation.user ),
+            lodgement: await LodgementModel.findById( reservation.lodgement ),
+            costReservation: reservation.costReservation
+      }
+         
                      } );
 
     } catch ( error ) {
