@@ -68,6 +68,7 @@ export class UsersService {
         prev: (page - 1 > 0) ? `/api/users?page=${ ( page - 1 ) }&limit=${ limit }`: null,
 
         users: users.map( user => ( {
+          id: user.id,
           name: user.name,
           email: user.email,
           emailValidated: user.emailValidated,

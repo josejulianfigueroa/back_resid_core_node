@@ -1,4 +1,4 @@
-import { LodgementModel } from '../../data';
+import { LodgementModel, ReservationModel } from '../../data';
 import { ImagesLodgementModel } from '../../data/mongo';
 import { LodgementDto, CustomError, PaginationDto, LogEntity, LogSeverityLevel } from '../../domain';
 import { LoadImages } from '../../domain/interfaces/loadImages.interface';
@@ -10,39 +10,46 @@ export class LodgementService {
   constructor(private readonly fileSystemService: FileSystemService) { }
 
   async deleteLodgement(id: string ) {
-    try {
-      const lodgement = await LodgementModel.findByIdAndDelete(id);
   
-    if(lodgement){
-
+      const reservations = await ReservationModel.find({ lodgement: id});
+      if(reservations){
+        throw CustomError.internalServer( 'No se puede eliminar el hospedaje, éste se encuentra vinculado a una reservación' );
+      }else{
+        try {
+        const lodgement = await LodgementModel.findByIdAndDelete(id);
+        const imgLodge = await ImagesLodgementModel.deleteMany( {lodgement : id});
+      if(lodgement){
+  
+        this.fileSystemService.saveLog(
+          new LogEntity({
+          message: `Se ha eliminado con éxito el alojamiento con id: ${lodgement.name} con data: ${JSON.stringify(lodgement)}`, 
+          level: LogSeverityLevel.info,
+          origin: 'lodgement.service.ts'
+          }));
+  
+      return {
+        id: lodgement.id,
+        name: lodgement.name,
+        description: lodgement.description,
+        location: lodgement.location,
+        activeStatus: lodgement.activeStatus,
+        cost: lodgement.cost,
+      };
+  
+    } else {
+      throw CustomError.badRequest( 'delete failed' );
+    }
+    } catch ( error ) {
       this.fileSystemService.saveLog(
         new LogEntity({
-        message: `Se ha eliminado con éxito el alojamiento con id: ${lodgement.name} con data: ${JSON.stringify(lodgement)}`, 
-        level: LogSeverityLevel.info,
-        origin: 'lodgement.service.ts'
+          message: `Ha ocurrido un error inesperado: ${error}, al querer eliminar un alojamiento con id: ${ id }`, 
+          level: LogSeverityLevel.high,
+          origin: 'lodgement.service.ts'
         }));
+      throw CustomError.internalServer( `${ error }` );
+    }
+      }
 
-    return {
-      id: lodgement.id,
-      name: lodgement.name,
-      description: lodgement.description,
-      location: lodgement.location,
-      activeStatus: lodgement.activeStatus,
-      cost: lodgement.cost,
-    };
-
-  } else {
-    throw CustomError.badRequest( 'delete failed' );
-  }
-  } catch ( error ) {
-    this.fileSystemService.saveLog(
-      new LogEntity({
-        message: `Ha ocurrido un error inesperado: ${error}, al querer eliminar un alojamiento con id: ${ id }`, 
-        level: LogSeverityLevel.high,
-        origin: 'lodgement.service.ts'
-      }));
-    throw CustomError.internalServer( `${ error }` );
-  }
 
 }
 

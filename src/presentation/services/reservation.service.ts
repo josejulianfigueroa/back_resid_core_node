@@ -254,6 +254,7 @@ let i: number = 0;
       id: reservation.id,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
+      dateReservation: reservation.dateReservation,
       status: reservation.status,
       user: reservation.user,
       lodgement: reservation.lodgement,
@@ -301,6 +302,8 @@ let i: number = 0;
       const [ total, reservations ] = await Promise.all( [
         ReservationModel.countDocuments(),
         ReservationModel.find(obj)
+          .populate("user")
+          .populate("lodgement")
           .skip( ( page - 1 ) * limit )
           .limit( limit )
       ] );
@@ -319,6 +322,7 @@ let i: number = 0;
           status: reservation.status,
           user: reservation.user,
           lodgement: reservation.lodgement,
+          dateReservation: reservation.dateReservation,
           costReservation: reservation.costReservation
         } ) )
       };

@@ -22,7 +22,7 @@ export class ReservationRoutes {
     const reservationService = new ReservationService(new LodgementService(new FileSystemService()),emailService, new FileSystemService());
     const controller = new ReservationController(reservationService);
 
-    router.get( '/', controller.getReservations );
+    router.get( '/',[ AuthMiddleware.validateJWT ], controller.getReservations );
     
     router.post( '/',[ AuthMiddleware.validateJWT ],controller.createReservation );
 
