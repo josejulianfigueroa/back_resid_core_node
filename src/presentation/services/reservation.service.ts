@@ -13,8 +13,50 @@ export class ReservationService {
                 private readonly emailService: EmailService,
                 private readonly fileSystemService: FileSystemService
   ) { }
+  async getPayReservations( paginationDto: PaginationDto ) {
 
-  async payReservation(idReservation: string, monto: number, user: UserEntity  ) {
+    const { page, limit } = paginationDto;
+
+    try {
+
+      const [ total, paymentsReservations ] = await Promise.all( [
+        PagosModel.countDocuments(),
+        PagosModel.find()
+          .populate('reservation')
+          .populate('user')
+          .skip( ( page - 1 ) * limit )
+          .limit( limit )
+      ] );
+
+      return {
+        page: page,
+        limit: limit,
+        total: total,
+        next: `/api/pay?page=${ ( page + 1 ) }&limit=${ limit }`,
+        prev: (page - 1 > 0) ? `/api/pay?page=${ ( page - 1 ) }&limit=${ limit }`: null,
+     
+        paymentsReservations: paymentsReservations.map( pay => ( {
+          id: pay.id,
+          fechaPago: pay.fechaPago,
+          monto: pay.monto,
+          user: pay.user,
+          reservation: pay.reservation,
+          dateCreation: pay.dateCreation
+        } ) )
+      };
+
+    } catch ( error ) {
+      this.fileSystemService.saveLog(
+        new LogEntity({
+          message: `Ha ocurrido un error inesperado: ${error}, al querer obtener los alojamientos`, 
+          level: LogSeverityLevel.high,
+          origin: 'lodgement.service.ts'
+        }));
+      throw CustomError.internalServer( 'Internal Server Error' );
+    }
+  }
+
+  async payReservation(idReservation: string, monto: number,fecha: string, user: UserEntity  ) {
 
     const reservation = await ReservationModel.findById( idReservation );
     if ( !reservation ) throw CustomError.badRequest( 'Reservation no exists' );
@@ -38,7 +80,7 @@ export class ReservationService {
       throw CustomError.badRequest( 'The total payments are greater than the reservation amount' );
     }else {
       const payModel = new PagosModel({ 
-        fechaPago: new Date(),
+        fechaPago: fecha,
         monto: monto,
         user: user.id,
         reservation: idReservation

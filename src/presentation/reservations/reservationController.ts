@@ -22,14 +22,29 @@ export class ReservationController {
 
   
   payReservation= ( req: Request, res: Response ) => {
-    const { id: idReservation, monto } = req.params;
+    const { id: idReservation, monto, fecha } = req.params;
     let montoNumber: number = 0;
     if(monto){
       montoNumber = parseInt(monto);
     }
  
-    this.reservationService.payReservation( idReservation, montoNumber, req.body.user)
+    this.reservationService.payReservation( idReservation, montoNumber,fecha, req.body.user)
       .then( reservation => res.status( 201 ).json( reservation ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
+  getPayReservations = ( req: Request, res: Response ) => {
+    let { page = 1, limit = 10 } = req.query;
+
+    const [ error, paginationDto ] = PaginationDto.create( +page, +limit );
+
+    if ( error ) return res.status(400).json({ error });
+
+    if ( !paginationDto ) return res.status(400).json({ error });
+
+    this.reservationService.getPayReservations( paginationDto)
+      .then( reservationsPay => res.status( 201 ).json( reservationsPay ) )
       .catch( error => this.handleError( error, res ) );
 
   };
