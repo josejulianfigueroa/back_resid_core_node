@@ -52,7 +52,7 @@ export class UsersService {
         name: userDto.name,
         email: userDto.email,
         emailValidated: userDto.emailValidated,
-        roles: userDto.role,
+        role: userDto.role,
         telefono: userDto.telefono,
         img: userDto.img,
       };
@@ -94,7 +94,7 @@ export class UsersService {
           name: user.name,
           email: user.email,
           emailValidated: user.emailValidated,
-          roles: user.role,
+          role: user.role,
           telefono: user.telefono,
           img: user.img,
         } ) )

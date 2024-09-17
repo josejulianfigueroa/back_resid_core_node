@@ -35,7 +35,6 @@ export class UserController {
 
   };
   updateUser = ( req: Request, res: Response ) => {
-    const { id } = req.params;
 
     const [ error, updateUser ] = RegisterUserDto.modify({ 
       ...req.body,
