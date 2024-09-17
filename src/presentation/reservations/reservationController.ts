@@ -27,7 +27,6 @@ export class ReservationController {
     if(monto){
       montoNumber = parseInt(monto);
     }
- 
     this.reservationService.payReservation( idReservation, montoNumber,fecha, req.body.user)
       .then( reservation => res.status( 201 ).json( reservation ) )
       .catch( error => this.handleError( error, res ) );
@@ -54,6 +53,15 @@ export class ReservationController {
 
     this.reservationService.changeStatusReservation( idReservation,  status, req.body.user)
       .then( reservation => res.status( 201 ).json( reservation ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
+  deletePay= ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    this.reservationService.deletePay( id )
+      .then( pay => res.status( 201 ).json( pay ) )
       .catch( error => this.handleError( error, res ) );
 
   };

@@ -1,14 +1,15 @@
 import { bcryptAdapter } from '../../config';
 import { UserModel  } from '../../data';
 import { CustomError, LogEntity, LogSeverityLevel, PaginationDto, RegisterUserDto } from '../../domain';
+import { LoadImages } from '../../domain/interfaces/loadImages.interface';
 import { FileSystemService } from './fileSystem.service';
-
+import fs from 'fs';
 
 export class UsersService {
 
   constructor(private readonly fileSystemService: FileSystemService) { }
 
-  public async updateUser( userDto: RegisterUserDto ) {
+  public async updateUser( userDto: RegisterUserDto) {
 
     try {
       // Encriptar la contraseña
@@ -16,6 +17,26 @@ export class UsersService {
         userDto.password = bcryptAdapter.hash( userDto.password );
       }
       
+      //Comparando imagenes
+      UserModel.findById( userDto.id )
+      .then( userData => {
+
+        if(userData){
+
+           if(userData.img !== userDto.img && userData.img !== ''
+              && userData.img !== null  && userData.img !== undefined
+           ){
+             //Eliminar Img Anterior
+             const path =  `uploads/users/${userData.img}`;
+     
+             if ( fs.existsSync( path ) ) {
+               fs.unlinkSync( path );
+            }
+     
+           }
+         }
+      })
+
       const user = await UserModel.findByIdAndUpdate( userDto.id, userDto );
 
       if(user){
@@ -27,6 +48,7 @@ export class UsersService {
           }));
 
       return { 
+        id: userDto.id,
         name: userDto.name,
         email: userDto.email,
         emailValidated: userDto.emailValidated,
@@ -131,7 +153,7 @@ export class UsersService {
       throw CustomError.internalServer( 'Internal Server Error' );
     }
   }
-  
+ 
 }
 
 

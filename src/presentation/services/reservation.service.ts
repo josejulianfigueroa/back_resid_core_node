@@ -56,6 +56,37 @@ export class ReservationService {
     }
   }
 
+  async deletePay(idPay: string ) {
+    try {
+      const pay = await PagosModel.findByIdAndDelete(idPay);
+  
+    if(pay){
+
+      return {
+        id: pay.id,
+        fechaPago: pay.fechaPago,
+        monto: pay.monto,
+        user: pay.user,
+        reservation: pay.reservation,
+        dateCreation: pay.dateCreation
+      };
+
+  } else {
+    throw CustomError.badRequest( 'delete pay failed' );
+  }
+  } catch ( error ) {
+    this.fileSystemService.saveLog(
+      new LogEntity({
+      message: `Ha ocurrido un error inesperado: ${error}, al eliminar un pago de la reservación con idPago: ${idPay}`, 
+      level: LogSeverityLevel.high,
+      origin: 'reservation.service.ts'
+      }));
+    throw CustomError.internalServer( `${ error }` );
+  }
+
+  }
+
+
   async payReservation(idReservation: string, monto: number,fecha: string, user: UserEntity  ) {
 
     const reservation = await ReservationModel.findById( idReservation );
@@ -89,9 +120,9 @@ export class ReservationService {
     }
    
     if(sumaTotal === reservation.costReservation) {
-      this.changeStatusReservation(idReservation, 'PAGADA', user, monto, sumaTotal);
+      this.changeStatusReservation(idReservation, 'PAGADA', user, monto, sumaTotal, fecha);
     }else {
-      this.changeStatusReservation(idReservation, 'ABONO', user, monto, sumaTotal);
+      this.changeStatusReservation(idReservation, 'ABONO', user, monto, sumaTotal, fecha);
     }
     
     // Se guarda log de Pago con exito
@@ -103,14 +134,14 @@ export class ReservationService {
             }));
 
     return {
-      fechaPago: moment().format('DD-MM-YYYY').toString(),
+      fechaPago: moment(fecha).format('DD-MM-YYYY').toString(),
       monto: monto,
       user: user.id,
       reservation: idReservation
     };
 
   }
-  async changeStatusReservation(idReservation: string, status: string, user: UserEntity, monto?: number, suma?: number) {
+  async changeStatusReservation(idReservation: string, status: string, user: UserEntity, monto?: number, suma?: number, fechaPago?: string) {
     
     const reservation = await ReservationModel.findById( idReservation );
     if ( !reservation ) throw CustomError.badRequest( 'Reservation no exists' );
@@ -131,8 +162,8 @@ export class ReservationService {
                     .then( lodge => { 
                        // Enviar email de confirmación al cliente con nuevo status
                        if(status.endsWith('CONFIRMADA') && costReservation){
-                          this.sentEmailToClientStatusConfirmada(reservation.startDate.toString(),
-                                                       reservation.endDate.toString(),
+                          this.sentEmailToClientStatusConfirmada(reservation.startDate,
+                                                       reservation.endDate,
                                                        user,
                                                        lodge.name,
                                                        costReservation,
@@ -140,32 +171,34 @@ export class ReservationService {
                        }
                        if(status.endsWith('CANCELADA') && costReservation){
                         this.deleteReservation(idReservation) 
-                        this.sentEmailToClientStatusCancelada(reservation.startDate.toString(),
-                                                     reservation.endDate.toString(),
+                        this.sentEmailToClientStatusCancelada(reservation.startDate,
+                                                     reservation.endDate,
                                                      user,
                                                      lodge.name,
                                                      costReservation,
                                                      lodge.cost);
                       }
                       if(status.endsWith('PAGADA') && monto && suma && costReservation){
-                        this.sentEmailToClientStatusPagada(reservation.startDate.toString(),
-                                                   reservation.endDate.toString(),
+                        this.sentEmailToClientStatusPagada(reservation.startDate,
+                                                   reservation.endDate,
                                                    user,
                                                    lodge.name,
                                                    monto,
                                                    suma,
                                                    costReservation,
-                                                   lodge.cost);
+                                                   lodge.cost,
+                                                   fechaPago);
                       }
                       if(status.endsWith('ABONO') && monto && suma && costReservation){
-                        this.sentEmailToClientStatusAbono(reservation.startDate.toString(),
-                                                   reservation.endDate.toString(),
+                        this.sentEmailToClientStatusAbono(reservation.startDate,
+                                                   reservation.endDate,
                                                    user,
                                                    lodge.name,
                                                    monto,
                                                    suma,
                                                    costReservation,
-                                                   lodge.cost);
+                                                   lodge.cost,
+                                                   fechaPago);
                       }
                       }).catch(error => {
                          this.fileSystemService.saveLog(
@@ -355,6 +388,32 @@ let i: number = 0;
           .skip( ( page - 1 ) * limit )
           .limit( limit )
       ] );
+      const reservationsJson: any = reservations.map( reservation  =>  
+        ( {
+          id: reservation.id,
+          startDate: reservation.startDate,
+          endDate: reservation.endDate,
+          status: reservation.status,
+          user: reservation.user,
+          lodgement: reservation.lodgement,
+          paymentsReservations: null,
+          dateReservation: reservation.dateReservation,
+          costReservation: reservation.costReservation
+        }));
+
+          if(reservationsJson){
+            for(let item of reservationsJson){
+              const pagos =  await PagosModel.find( {reservation:  item.id});
+              item.paymentsReservations = pagos.map( pagos => ({
+                id: pagos.id,
+                fechaPago: moment(pagos.fechaPago).format('DD-MM-YYYY').toString(),
+                monto: pagos.monto,
+                fechaRegistro: moment(pagos.dateCreation).format('DD-MM-YYYY').toString()
+              }))
+            }
+          }
+
+
 
       return {
         page: page,
@@ -363,16 +422,7 @@ let i: number = 0;
         next: `/api/reservations?page=${ ( page + 1 ) }&limit=${ limit }`,
         prev: (page - 1 > 0) ? `/api/reservations?page=${ ( page - 1 ) }&limit=${ limit }`: null,
 
-        reservations: reservations.map( reservation => ( {
-          id: reservation.id,
-          startDate: reservation.startDate,
-          endDate: reservation.endDate,
-          status: reservation.status,
-          user: reservation.user,
-          lodgement: reservation.lodgement,
-          dateReservation: reservation.dateReservation,
-          costReservation: reservation.costReservation
-        } ) )
+        reservations: reservationsJson   
       };
 
     } catch ( error ) {
@@ -433,13 +483,13 @@ async sentEmailToClient(reservationDto: ReservationDto, user: UserEntity, nameLo
   const isSentClient = await this.emailService.sendEmail(optionsClient);
   if ( !isSentClient ) throw CustomError.internalServer('Error sending email Client');
 }
-async sentEmailToClientStatusConfirmada(startDate:string, endDate:string,  user: UserEntity, nameLodgement: string, costReservation: number, costLodge: number) {
+async sentEmailToClientStatusConfirmada(startDate:Date, endDate:Date,  user: UserEntity, nameLodgement: string, costReservation: number, costLodge: number) {
   const htmlClientStatus = `
   <h1>Enhorabuena ${ user.name }, su reserva ha sido confirmada con éxito</h1>
   <div><hr>
         <p><strong>Datos de la Reserva:</strong></p>
-    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
-    <li><strong>Fecha de Salida:</strong> ${ moment(endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
+    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate).format('DD-MM-YYYY').toString() }</li>
+    <li><strong>Fecha de Salida:</strong> ${ moment(endDate).format('DD-MM-YYYY').toString() }</li>
     <li><strong>Tipo de Hospedaje:</strong>: ${ nameLodgement }</li>
     <li><strong>Hora Check-in:</strong>: 14:00 horas</li>
     <li><strong>Hora Check-out:</strong>: 12:00 horas</li>
@@ -469,7 +519,7 @@ const optionsClientStatus = {
 const isSentClientStatus = await this.emailService.sendEmail(optionsClientStatus);
 if ( !isSentClientStatus ) throw CustomError.internalServer('Error sending email Client Status');
 }
-async sentEmailToClientStatusCancelada(startDate:string, endDate:string,  user: UserEntity, nameLodgement: string, costReservation: number, costLodge: number) {
+async sentEmailToClientStatusCancelada(startDate:Date, endDate:Date,  user: UserEntity, nameLodgement: string, costReservation: number, costLodge: number) {
   const htmlClientStatus = `
   <h1> ${ user.name }, su reserva ha sido cancelada</h1>
   <div><hr>
@@ -477,8 +527,8 @@ async sentEmailToClientStatusCancelada(startDate:string, endDate:string,  user: 
       quedado sin disponibilidad para las fechas indicadas en su reservación.</p>
   <br>
     <p><strong>Datos de la Reserva:</strong></p>
-    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
-    <li><strong>Fecha de Salida:</strong> ${ moment(endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
+    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate).format('DD-MM-YYYY').toString() }</li>
+    <li><strong>Fecha de Salida:</strong> ${ moment(endDate).format('DD-MM-YYYY').toString() }</li>
     <li><strong>Tipo de Hospedaje:</strong>: ${ nameLodgement }</li>
     <li><strong>Hora Check-in:</strong>: 14:00 horas</li>
     <li><strong>Hora Check-out:</strong>: 12:00 horas</li>
@@ -503,19 +553,20 @@ const optionsClientStatus = {
 const isSentClientStatus = await this.emailService.sendEmail(optionsClientStatus);
 if ( !isSentClientStatus ) throw CustomError.internalServer('Error sending email Client Status');
 }
-async sentEmailToClientStatusPagada(startDate:string,
-                                    endDate:string,
+async sentEmailToClientStatusPagada(startDate:Date,
+                                    endDate:Date,
                                     user: UserEntity, 
                                     nameLodgement:string,
                                     monto: number,
                                     suma: number,
                                     costReservation: number,
-                                    costLodge: number) {
+                                    costLodge: number,
+                                    fechaPago: string | undefined ) {
   const htmlClientStatus = `
   <h1> ${ user.name }, se ha registrado el pago total de tu reservación</h1>
   <div><hr>
        <p><strong>Detalle del Pago:</strong></p>
-    <ul><li><strong>Fecha:</strong> ${ moment().format('DD-MM-YYYY').toString() }</li>
+    <ul><li><strong>Fecha:</strong> ${ moment(fechaPago).format('DD-MM-YYYY').toString() }</li>
     <li><strong>Monto:</strong> ${ monto.toLocaleString(["es-VE"]) } Bs.</li></ul>
 <br>
           <p><strong>Estado del Pago:</strong></p>
@@ -526,8 +577,8 @@ async sentEmailToClientStatusPagada(startDate:string,
      <li><strong>Costo Total de la Estadía:</strong> ${ costReservation.toLocaleString(["es-VE"]) } Bs.</li> </ul>
 <br>
      <p><strong>Datos de la Reserva:</strong></p>
-    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
-    <li><strong>Fecha de Salida:</strong> ${ moment(endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
+    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate).format('DD-MM-YYYY').toString() }</li>
+    <li><strong>Fecha de Salida:</strong> ${ moment(endDate).format('DD-MM-YYYY').toString() }</li>
     <li><strong>Tipo de Hospedaje:</strong>: ${ nameLodgement }</li>
     <li><strong>Hora Check-in:</strong>: 14:00 horas</li>
     <li><strong>Hora Check-out:</strong>: 12:00 horas</li>
@@ -549,20 +600,21 @@ const optionsClientStatus = {
 const isSentClientStatus = await this.emailService.sendEmail(optionsClientStatus);
 if ( !isSentClientStatus ) throw CustomError.internalServer('Error sending email Client Status');
 }
-async sentEmailToClientStatusAbono(startDate:string,
-                                  endDate:string, 
+async sentEmailToClientStatusAbono(startDate:Date,
+                                  endDate:Date, 
                                   user: UserEntity,
                                   nameLodgement: string,
                                   monto: number,
                                   suma: number,
                                   costReservation: number,
-                                  costLodge: number  ) {
+                                  costLodge: number,
+                                  fechaPago: string | undefined ) {
 
   const htmlClientStatus = `
   <h1> ${ user.name }, se ha registrado un abono parcial del total de tu reservación</h1>
   <div><hr>
          <p><strong>Detalle del Abono:</strong></p>
-    <ul><li><strong>Fecha:</strong> ${ moment().format('DD-MM-YYYY').toString() }</li>
+    <ul><li><strong>Fecha:</strong> ${ moment(fechaPago).format('DD-MM-YYYY').toString() }</li>
     <li><strong>Monto:</strong> ${ monto.toLocaleString(["es-VE"]) } Bs.</li></ul>
 <br>
           <p><strong>Estado del Pago:</strong></p>
@@ -574,8 +626,8 @@ async sentEmailToClientStatusAbono(startDate:string,
 <br>
 
     <p><strong>Datos de la Reserva:</strong></p>
-    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
-    <li><strong>Fecha de Salida:</strong> ${ moment(endDate,'YYYY-MM-DD').format('DD-MM-YYYY').toString() }</li>
+    <ul><li><strong>Fecha de Llegada:</strong> ${ moment(startDate).format('DD-MM-YYYY').toString() }</li>
+    <li><strong>Fecha de Salida:</strong> ${ moment(endDate).format('DD-MM-YYYY').toString() }</li>
     <li><strong>Tipo de Hospedaje:</strong>: ${ nameLodgement }</li>
     <li><strong>Hora Check-in:</strong>: 14:00 horas</li>
     <li><strong>Hora Check-out:</strong>: 12:00 horas</li>

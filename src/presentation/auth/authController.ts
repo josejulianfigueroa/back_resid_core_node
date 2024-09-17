@@ -60,7 +60,9 @@ export class AuthController {
           "name": req.body.user.name,
           "email": req.body.user.email,
           "emailValidated": req.body.user.emailValidated,
-          "role": req.body.user.role
+          "role": req.body.user.role,
+          "telefono": req.body.user.telefono,
+          "img": req.body.user.img
       } ,
         token: req.header('Authorization')!.split(' ').at(1) || '',
       });

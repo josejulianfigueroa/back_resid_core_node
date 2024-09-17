@@ -39,12 +39,18 @@ export class ReservationRoutes {
         Validators.validarCampos ],
         controller.changeStatusReservation );
 
-    router.post( '/pay/:id/:monto/fecha:',
+    router.post( '/pay/:id/:monto/:fecha',
           [ AuthMiddleware.validateJWT, 
             check('id').custom( Validators.isMongoID ),
             check('monto').custom( Validators.esNumero ),
             Validators.validarCampos ],
             controller.payReservation );
+
+     router.post( '/pay/delete/:id',
+              [ AuthMiddleware.validateJWT, 
+                check('id').custom( Validators.isMongoID ),
+                Validators.validarCampos ],
+                controller.deletePay );
 
      router.get( '/pay',
               [ AuthMiddleware.validateJWT ],

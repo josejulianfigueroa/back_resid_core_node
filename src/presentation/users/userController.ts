@@ -1,6 +1,7 @@
 import { Response, Request } from 'express';
-import { CustomError, PaginationDto } from '../../domain';
+import { CustomError, PaginationDto, RegisterUserDto } from '../../domain';
 import { UsersService } from '../services/users.service';
+import { LoadImages } from '../../domain/interfaces/loadImages.interface';
 
 
 export class UserController {
@@ -33,6 +34,18 @@ export class UserController {
       .catch( error => this.handleError( error, res ) );
 
   };
+  updateUser = ( req: Request, res: Response ) => {
+    const { id } = req.params;
+
+    const [ error, updateUser ] = RegisterUserDto.modify({ 
+      ...req.body,
+    });
+    if ( error ) return res.status( 400 ).json( { error } );
 
 
+    this.usersService.updateUser( updateUser! )
+      .then( user => res.status( 201 ).json( user ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
 }
