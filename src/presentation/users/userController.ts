@@ -20,7 +20,14 @@ export class UserController {
     return res.status( 500 ).json( { error: 'Internal server error' } );
   };
 
+  deleteMensaje = ( req: Request, res: Response ) => {
+    const { id } = req.params;
 
+    this.usersService.deleteMsg( id )
+      .then( user => res.status( 201 ).json( user ) )
+      .catch( error => this.handleError( error, res ) );
+
+  };
 
   getUsers = async ( req: Request, res: Response ) => {
 

@@ -1,10 +1,10 @@
 import { bcryptAdapter } from '../../config';
 import { UserModel  } from '../../data';
+import { MensajeModel } from '../../data/mongo/models/mensajes.model';
 import { CustomError, LogEntity, LogSeverityLevel, PaginationDto, RegisterUserDto } from '../../domain';
-import { LoadImages } from '../../domain/interfaces/loadImages.interface';
 import { FileSystemService } from './fileSystem.service';
 import fs from 'fs';
-
+import moment from 'moment';
 export class UsersService {
 
   constructor(private readonly fileSystemService: FileSystemService) { }
@@ -82,22 +82,36 @@ export class UsersService {
           .limit( limit )
       ] );
 
+      const userJson: any = users.map( user  =>  
+        ( {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        emailValidated: user.emailValidated,
+        role: user.role,
+        telefono: user.telefono,
+        img: user.img,
+        mensajes: null
+        }));
+     
+        if(userJson){
+          for(let item of userJson){
+            const msg =  await MensajeModel.find( {user:  item.id});
+            item.mensajes = msg.map( msg => ({
+              id: msg.id,
+              msg: msg.msg,
+              fechaRegistro: moment(msg.dateCreation).format('DD-MM-YYYY').toString()
+            }))
+          }
+        }
+
       return {
         page: page,
         limit: limit,
         total: total,
         next: `/api/users?page=${ ( page + 1 ) }&limit=${ limit }`,
         prev: (page - 1 > 0) ? `/api/users?page=${ ( page - 1 ) }&limit=${ limit }`: null,
-
-        users: users.map( user => ( {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          emailValidated: user.emailValidated,
-          role: user.role,
-          telefono: user.telefono,
-          img: user.img,
-        } ) )
+        users: userJson
       };
 
     } catch ( error ) {
@@ -153,7 +167,29 @@ export class UsersService {
       throw CustomError.internalServer( 'Internal Server Error' );
     }
   }
- 
+  async deleteMsg(id: string ) {
+  
+      try {
+      const msg = await MensajeModel.findByIdAndDelete(id);
+if(msg){
+    return {
+      id: msg.id,
+      msg: msg.msg,
+      user: msg.id,
+    };
+  } else{
+    throw CustomError.badRequest( 'delete msg failed' );
+  }
+  } catch ( error ) {
+    this.fileSystemService.saveLog(
+      new LogEntity({
+        message: `Ha ocurrido un error inesperado: ${error}, al querer eliminar un mensaje con id: ${ id }`, 
+        level: LogSeverityLevel.high,
+        origin: 'user.service.ts'
+      }));
+    throw CustomError.internalServer( `${ error }` );
+  }
+    }
 }
 
 

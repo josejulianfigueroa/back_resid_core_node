@@ -3,7 +3,8 @@ import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from '../../do
 import { AuthService } from '../services/auth.service';
 import { JwtAdapter } from '../../config';
 import { UserModel } from '../../data';
-
+import { MensajeModel } from '../../data/mongo/models/mensajes.model';
+import moment from 'moment';
 
 export class AuthController {
 
@@ -54,18 +55,30 @@ export class AuthController {
   }
 
   checkToken = (req: Request, res: Response) => {
-      return res.json({
-        user: {
-          "id": req.body.user.id,
-          "name": req.body.user.name,
-          "email": req.body.user.email,
-          "emailValidated": req.body.user.emailValidated,
-          "role": req.body.user.role,
-          "telefono": req.body.user.telefono,
-          "img": req.body.user.img
-      } ,
-        token: req.header('Authorization')!.split(' ').at(1) || '',
-      });
+
+       const msg =  MensajeModel.find().then(
+        (msg) => {
+   
+          const mensajes = msg.map( msg => ({
+            id: msg.id,
+            msg: msg.msg,
+            fechaRegistro: moment(msg.dateCreation).format('DD-MM-YYYY').toString()
+          }));
+          return res.json({
+            user: {
+              id: req.body.user.id,
+              name: req.body.user.name,
+              email: req.body.user.email,
+              emailValidated: req.body.user.emailValidated,
+              role: req.body.user.role,
+              telefono: req.body.user.telefono,
+              img: req.body.user.img,
+              mensajes: mensajes
+          } ,
+            token: req.header('Authorization')!.split(' ').at(1) || '',
+          });
+        }
+       )
   }
 
   validateEmail = (req: Request, res: Response) => {

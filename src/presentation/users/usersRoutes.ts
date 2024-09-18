@@ -16,6 +16,7 @@ export class UserRoutes {
     const controller = new UserController(usersService);
 
     router.get( '/',[ AuthMiddleware.validateJWT ], controller.getUsers );
+    router.get( '/mensajes/delete/:id',[ AuthMiddleware.validateJWT ], controller.deleteMensaje );
     router.post( '/update',
       [AuthMiddleware.validateJWT,
       Validators.validarCampos ], controller.updateUser );

@@ -5,6 +5,7 @@ import { LodgementService, EmailService } from './';
 import moment from 'moment';
 import { FileSystemService } from './fileSystem.service';
 import { envs } from '../../config';
+import { MensajeModel } from '../../data/mongo/models/mensajes.model';
 
 
 export class ReservationService {
@@ -297,6 +298,13 @@ let i: number = 0;
     } );
 
     reservation.save();
+
+    const mensaje = new MensajeModel( {
+      msg: `Nueva Reservación realizada por ${user.name}`,
+      user: user.id,
+    } );
+    mensaje.save();
+
 // Insertar las fechas generadas en la tabla de ocupaciones busydates
     for(i=0; i < daysNight; i++)
       {
@@ -323,11 +331,6 @@ let i: number = 0;
       level: LogSeverityLevel.info,
       origin: 'reservation.service.ts'
       }));
-
-      const reservationNew = await ReservationModel.findById( reservation.id )
-      .populate('user')
-      .populate('lodgement');
-       
     
         return {
             id: reservation.id,

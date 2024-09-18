@@ -11,11 +11,12 @@ export class UserEntity {
     public password: string,
     public role: string[],
     public img?: string,
-    public telefono?: string
+    public telefono?: string,
+    public mensajes?: Mensajes[] 
   ) { }
 
   static fromObject( object: { [ key: string ]: any; } ) {
-    const { id, _id, name, email, emailValidated, password, role, img, telefono } = object;
+    const { id, _id, name, email, emailValidated, password, role, img, telefono, mensajes } = object;
 
     if ( !_id && !id ) {
       throw CustomError.badRequest( 'Missing id' );
@@ -28,9 +29,15 @@ export class UserEntity {
     if ( !role ) throw CustomError.badRequest( 'Missing role' );
 
 
-    return new UserEntity( _id || id, name, email, emailValidated, password, role, img, telefono );
+    return new UserEntity( _id || id, name, email, emailValidated, password, role, img, telefono, mensajes );
 
   }
 
 
+}
+
+export interface Mensajes {
+  id: string;
+  msg: string;
+  fechaRegistro: string;
 }

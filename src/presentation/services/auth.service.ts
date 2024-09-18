@@ -1,10 +1,11 @@
 import { UsersService } from '.';
 import { JwtAdapter, bcryptAdapter, envs } from '../../config';
 import { UserModel } from '../../data';
+import { MensajeModel } from '../../data/mongo/models/mensajes.model';
 import { CustomError, LogEntity, LoginUserDto, LogSeverityLevel, RegisterUserDto, UserEntity } from '../../domain';
 import { EmailService } from './email.service';
 import { FileSystemService } from './fileSystem.service';
-
+import moment from 'moment';
 
 export class AuthService {
 
@@ -64,6 +65,8 @@ export class AuthService {
     const user = await UserModel.findOne({ email: loginUserDto.email });
     if (!user) throw CustomError.badRequest('Email not exist');
 
+    const msg =  await MensajeModel.find();
+
     const isMatching = bcryptAdapter.compare( loginUserDto.password, user.password );
     if ( !isMatching ) throw CustomError.badRequest('Password is not valid');
 
@@ -72,10 +75,30 @@ export class AuthService {
     const token = await JwtAdapter.generateToken({ id: user.id });
     if ( !token ) throw CustomError.internalServer('Error while creating JWT');
 
-    return {
-      user: userEntity,
+    const userMensajesJson: any =  
+       {
+      user: {id: userEntity.id,
+      name: userEntity.name,
+      email: userEntity.email,
+      emailValidated: userEntity.emailValidated,
+      role: userEntity.role,
+      telefono: userEntity.telefono,
+      img: userEntity.img,
+      mensajes: null
+      },
       token: token,
-    }
+      };
+
+      if(userMensajesJson){
+          const msg =  await MensajeModel.find();
+          userMensajesJson.user.mensajes = msg.map( msg => ({
+            id: msg.id,
+            msg: msg.msg,
+            fechaRegistro: moment(msg.dateCreation).format('DD-MM-YYYY').toString()
+          }))
+
+      }
+    return userMensajesJson;
 
   }
 
