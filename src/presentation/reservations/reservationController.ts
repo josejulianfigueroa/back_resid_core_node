@@ -1,8 +1,9 @@
 import { Response, Request } from 'express';
-import { ReservationDto, CustomError, PaginationDto } from '../../domain';
+import { ReservationDto, CustomError, PaginationDto, UserEntity } from '../../domain';
 import { ReservationService } from '../services/reservation.service';
 import mongoose from 'mongoose';
 import moment from 'moment';
+import { LodgementModel, UserModel } from '../../data';
 
 export class ReservationController {
 
@@ -75,7 +76,7 @@ export class ReservationController {
 
   };
 
-  createReservation = ( req: Request, res: Response ) => {
+  createReservation = async ( req: Request, res: Response ) => {
 
     if(!req.body.lodgement){
       return res.status( 400 ).json( { error: 'Lodgement is required' } );
@@ -83,7 +84,21 @@ export class ReservationController {
     const [ error, reservationDto ] = ReservationDto.create( req.body );
     if ( error ) return res.status( 400 ).json( { error } );
 
-    this.reservationService.createReservation( reservationDto!, req.body.user, req.body.lodgement )
+let userBody: UserEntity;
+
+if(req.body.userId){
+
+  const user = await UserModel.findById( req.body.userId );
+  if ( !user ) return res.status(401).json({ error: 'Invalid - user' });
+     userBody = UserEntity.fromObject(user);
+
+}else {
+
+  userBody = req.body.user;
+}
+
+
+    this.reservationService.createReservation( reservationDto!, userBody, req.body.lodgement )
       .then( reservation => res.status( 201 ).json( reservation ) )
       .catch( error => this.handleError( error, res ) );
 

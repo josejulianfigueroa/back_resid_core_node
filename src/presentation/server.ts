@@ -89,14 +89,14 @@ export class Server {
     );
   }
     // Job para el mantenimiento diario de la tabla busydates a las 10:01 horas
-    if(envs.MANTENIMIENTO_BUSYDATES){
+   /* if(envs.MANTENIMIENTO_BUSYDATES){
     CronService.createJob(
       '1 10 * * *',
       () => {
         busyDatesService.deleteBusydateByMaintenance();
       }
     );
-  }
+  }*/
   }
 
   public close() {
