@@ -1,7 +1,7 @@
-import { BusydatesModel  } from '../../data';
+import { BusydatesModel, LodgementModel  } from '../../data';
 import { CustomError, LogEntity, LogSeverityLevel, PaginationDto } from '../../domain';
 import { FileSystemService } from './fileSystem.service';
-import { DateMongoMenorQ } from './reservation.service';
+import { DateMongoMayorQ, DateMongoMenorQ } from './reservation.service';
 import moment from 'moment';
 
 export class BusyDatesService {
@@ -38,6 +38,93 @@ export class BusyDatesService {
   }
 
 }
+async getStatistics(){
+
+const yearActual = new Date().getFullYear();
+
+const yearLast= yearActual -1;
+const startDate = yearLast +'-01-01';
+const endDate = yearActual +'-12-31';
+
+let dataActual: DataAnual = {
+                       ano:  yearActual.toString(),
+                       meses: []
+                };
+let dataHistorica: DataAnual = {
+                  ano:  yearLast.toString(),
+                  meses: []
+           };
+let responseStat: ResponseStatByLodgeDates = {
+  statsByLodgeDates: []
+}
+
+      try {
+
+      return await LodgementModel.find().then( lodges => {
+
+        const listLodges = lodges.map( ( lodge ) => ( {
+          id: lodge.id,
+          name: lodge.name,
+        }));
+ 
+      return BusydatesModel.find({ date: {
+                                  $gte : new Date(startDate),
+                                  $lt : new Date(endDate) 
+                                        }
+      }).then( (data) => {
+       const busydateResponse = data.map( busyDates => ( {
+          date: busyDates.date,
+          lodgement: busyDates.lodgement.valueOf(),
+        }));
+
+
+        listLodges.forEach ( (lodge) => {
+        const datesLodge =  busydateResponse.filter( (val) => val.lodgement === lodge.id);
+
+        // Data Actual
+          for(let i = 1; i <= 12; i++){
+            dataActual.meses[i-1] = datesLodge.filter( (val) => val.date.getMonth()+1 === i && val.date.getFullYear() === yearActual).length.toString();
+          }
+            console.log('dataActual',dataActual);
+        // Data Historica
+          for(let i = 1; i <= 12; i++){
+            dataHistorica.meses[i-1] = datesLodge.filter( (val) => val.date.getMonth()+1 === i && val.date.getFullYear() === yearLast).length.toString();
+          }
+          console.log('dataHistorica', dataHistorica);
+
+         const stat:StatisticsBusyDates = {
+            historico : dataHistorica,
+            actual :  dataActual
+        };
+        const lodgeStat: StatisticsByLodge ={
+          lodgeName: lodge.name,
+          lodgeId: lodge.id,
+          statistics : stat
+        };
+            responseStat.statsByLodgeDates.push(lodgeStat);
+            dataActual = {
+              ano:  yearActual.toString(),
+              meses: []
+             };
+           dataHistorica = {
+           ano:  yearLast.toString(),
+           meses: []
+          };
+      });
+
+        return {
+          ...responseStat
+        }
+
+    });
+
+  });
+
+  } catch ( error ) {
+    throw CustomError.internalServer( 'Internal Server Error' );
+  }
+}
+
   async getBusyDates( paginationDto: PaginationDto ) {
 
     const { page, limit } = paginationDto;
@@ -70,6 +157,27 @@ export class BusyDatesService {
     }
 
   }
+
+}
+
+export interface ResponseStatByLodgeDates {
+  statsByLodgeDates: StatisticsByLodge[];
+}
+
+export interface StatisticsByLodge {
+  lodgeName: string;
+  lodgeId: string;
+  statistics : StatisticsBusyDates;
+}
+
+export interface StatisticsBusyDates  {
+    historico : DataAnual;
+    actual : DataAnual;
+}
+
+export interface DataAnual {
+   ano: string;
+   meses : string[];
 
 }
 

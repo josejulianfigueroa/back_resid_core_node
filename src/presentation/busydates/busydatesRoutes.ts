@@ -14,6 +14,7 @@ export class BusyDateRoutes {
     const controller = new BusyDatesController( busyDatesService );
 
     router.get( '/', controller.getBusyDates );
+    router.get( '/statistics', controller.getStatistics );
 
     return router;
   }

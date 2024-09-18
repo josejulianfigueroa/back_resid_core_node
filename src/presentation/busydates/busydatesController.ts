@@ -35,5 +35,13 @@ export class BusyDatesController {
 
   };
 
+  getStatistics = async ( req: Request, res: Response ) => {
+    
+    this.busyDatesService.getStatistics()
+      .then( statistics => res.json( statistics ))
+      .catch( error => this.handleError( error, res ) );
+
+  };
+
 
 }
