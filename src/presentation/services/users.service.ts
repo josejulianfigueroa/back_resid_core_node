@@ -23,8 +23,11 @@ export class UsersService {
 
         if(userData){
 
-           if(userData.img !== userDto.img && userData.img !== ''
+           if(userData.img !== userDto.img 
+            && userData.img !== ''
               && userData.img !== null  && userData.img !== undefined
+              && userDto.img !== ''
+              && userDto.img !== null  && userDto.img !== undefined
            ){
              //Eliminar Img Anterior
              const path =  `uploads/users/${userData.img}`;

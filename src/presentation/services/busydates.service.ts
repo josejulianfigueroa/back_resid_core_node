@@ -89,12 +89,10 @@ let responseStat: ResponseStatByLodgeDates = {
           for(let i = 1; i <= 12; i++){
             dataActual.meses[i-1] = datesLodge.filter( (val) => val.date.getMonth()+1 === i && val.date.getFullYear() === yearActual).length;
           }
-            console.log('dataActual',dataActual);
         // Data Historica
           for(let i = 1; i <= 12; i++){
             dataHistorica.meses[i-1] = datesLodge.filter( (val) => val.date.getMonth()+1 === i && val.date.getFullYear() === yearLast).length;
           }
-          console.log('dataHistorica', dataHistorica);
 
           dataHistorica.suma= _.sumBy(dataHistorica.meses);
           dataActual.suma = _.sumBy(dataActual.meses);
