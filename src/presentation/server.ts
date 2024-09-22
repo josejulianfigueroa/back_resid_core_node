@@ -22,7 +22,7 @@ const emailService = new EmailService(
 )
 const busyDatesService = new BusyDatesService(new FileSystemService());
 const backupAndRestoreMongo = new BackupAndRestoreMongo();
-export class Server {
+export class ServerExpress {
 
   public readonly app = express();
   private serverListener?: any;
@@ -35,10 +35,12 @@ export class Server {
     this.port = port;
     this.publicPath = public_path;
     this.routes = routes;
+
+    this.configure();
   }
 
 
-  async start() {
+  private configure() {
     
     //* Middlewares
     this.app.use(fileUpload({
@@ -46,24 +48,19 @@ export class Server {
     }));
     this.app.use( express.json() ); // raw
     this.app.use( express.urlencoded({ extended: true }) ); // x-www-form-urlencoded
-    this.app.use( cors() );
+    this.app.use( cors({
+      origin: '*',
+    }) );
 
     
     //* Public Folder
     this.app.use( express.static( this.publicPath ) );
-
-    //* Routes
-    this.app.use( this.routes );
 
     //* SPA
  /*   this.app.get('*', (req, res) => {
       const indexPath = path.join( __dirname + `../../../${ this.publicPath }/index.html` );
       res.sendFile(indexPath);
     });*/
-    
-    this.serverListener = this.app.listen(this.port, () => {
-      console.log(`Server running on port ${ this.port }`);
-    });
     
 
 
@@ -101,6 +98,19 @@ export class Server {
 
   public close() {
     this.serverListener?.close();
+  }
+
+  public setRoutes(  router: Router ) {
+    this.app.use(router);
+  }
+  
+
+  async start() { 
+
+    this.serverListener = this.app.listen(this.port, () => {
+      console.log(`Server running on port ${ this.port }`);
+    });
+
   }
 
 }
